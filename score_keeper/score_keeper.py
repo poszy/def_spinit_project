@@ -13,14 +13,14 @@ class ScoreKeeper:
 
     def tally_points(self, user_correct, points, player_id):
         """
-                Gets the new playerPoints totals
+            Gets the new playerPoints totals
 
-                Args:
-                category: A string containing a category from the board.
+            Args:
+            category: A string containing a category from the board.
 
-                Returns:
-                userCorrect: a boolean representing whether or not the user's selection was correct
-            """
+            Returns:
+            userCorrect: a boolean representing whether or not the user's selection was correct
+        """
         if user_correct:
             self.playerPoints[player_id] += points
         else:
@@ -74,6 +74,7 @@ class ScoreKeeper:
         if self.has_token(player_id):
             # only remove token if player has at least one
             self.tokens[player_id] -= 1
+            success = True
         return success, self.tokens
 
     # interface
