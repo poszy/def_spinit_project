@@ -75,7 +75,7 @@ class GameServer:
 				client_request = data.decode('utf')
 				parse_request = client_request.split(',')
 
-				logging.info("Request from user: " + client_request)
+				logging.info("Server received request from user: " + client_request)
 					# # command = parse_request[0]
 					# args = parse_request[1:]
 			# 		if parse_request[0] == 'select_category':  # opponent selects category

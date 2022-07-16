@@ -35,13 +35,13 @@ class Client:
 
 			turn_message = "Client registering to server"
 			client.send(turn_message.encode("utf"))  # send message to game server
+			self.game_over = True
 			# if self.whose_turn == self.player_id:  # it's my turn
 			# 	# player takes a turn
 			#
 			# 	# spin wheel
 			#
 			# 	turn_message = "turn over"
-			client.send(turn_message.encode("utf"))  # send message to game server
 			#
 			#
 			# else:  # not my turn!
