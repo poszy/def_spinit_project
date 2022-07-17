@@ -1,6 +1,6 @@
 import unittest
 from score_keeper import ScoreKeeper
-
+from collections import defaultdict
 
 class MyTestCase(unittest.TestCase):
 	# def __init__(self):
@@ -32,39 +32,53 @@ class MyTestCase(unittest.TestCase):
 
 	def test_has_token(self):
 		scorekeeper = ScoreKeeper()
-		self.assertIs(type(scorekeeper.has_token("playerA"), bool))
+		self.assertIs(type(scorekeeper.has_token("playerA")), bool)
 		self.assertFalse(scorekeeper.has_token("playerA"))
-		scorekeeper.tokens = {"playerA": 3}
+		scorekeeper.playerTokens["playerA"] = 2  # give this player multiple tokens
 		self.assertTrue(scorekeeper.has_token("playerA"))
-		self.assertFalse(scorekeeper.has_token("playerB"))
+		self.assertFalse(scorekeeper.has_token("playerB"))  # not in token dict
 		self.assertFalse(scorekeeper.has_token(2))
 
 	def test_use_token(self):
 		scorekeeper = ScoreKeeper()
 		unsuccess, new_tokens = scorekeeper.use_token("playerA")
-		self.assertFalse(unsuccess)  # player has no tokens
-		self.assertEqual(new_tokens, {"playerA": 0})
+		self.assertFalse(unsuccess)  # player has no playerTokens
+		self.assertIs(type(new_tokens), defaultdict)
 
-		scorekeeper.tokens = {"playerA": -3}  # assign negative tokens
+		scorekeeper.playerTokens = {"playerA": -3}  # assign negative playerTokens
 		unsuccess2, neg_tokens = scorekeeper.use_token("playerA")
 		self.assertEqual(neg_tokens["playerA"], -3)
-		self.assertFalse(unsuccess2)  # player has negative tokens
+		self.assertFalse(unsuccess2)  # player has negative playerTokens
 
-		scorekeeper.tokens = {101: 3}  # positive tokens
-		self.assertEqual(scorekeeper.tokens[101], 3)
+		scorekeeper.playerTokens = {101: 3}  # positive playerTokens
+		self.assertEqual(scorekeeper.playerTokens[101], 3)
 		for tk in [2, 1, 0]:
 			success, pos_tokens = scorekeeper.use_token(101)
 			self.assertTrue(success)
-			self.assertEqual(scorekeeper.tokens[101], tk)
+			self.assertEqual(scorekeeper.playerTokens[101], tk)
 
-		unsuccess, zero_tokens = scorekeeper.use_token(101)  # zero tokens
+		unsuccess, zero_tokens = scorekeeper.use_token(101)  # zero playerTokens
 		self.assertFalse(unsuccess)
 		self.assertEqual(zero_tokens[101], 0)
 
-	def test_bankrupt(self, player_id):
+	def test_get_tokens(self):
+		scorekeeper = ScoreKeeper()
+		tokens_dict = {101: 3}
+		scorekeeper.playerTokens = tokens_dict # positive playerTokens
+		self.assertEqual(scorekeeper.get_tokens(), tokens_dict)
+
+
+	def test_get_scores(self):
+		scorekeeper = ScoreKeeper()
+		scores_dict = {101: 3}
+		scorekeeper.playerPoints = scores_dict # positive playerTokens
+		self.assertEqual(scorekeeper.get_scores(), scores_dict)
+
+
+	def test_bankrupt(self):
 		pass
 
-	def test_determine_winner(self, player_id):
+	def test_determine_winner(self):
 		pass
 
 

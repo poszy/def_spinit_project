@@ -8,8 +8,8 @@ class ScoreKeeper:
         self.var = "self"
         # given a new key, initializes value to 0. Note: point values can be negative
         self.playerPoints = defaultdict(int)
-        # given a new key, initializes value to 0 Note: # of tokens cannot be negative!
-        self.tokens = defaultdict(int)
+        # given a new key, initializes value to 0 Note: # of playerTokens cannot be negative!
+        self.playerTokens = defaultdict(int)
 
     def tally_points(self, user_correct, points, player_id):
         """
@@ -26,6 +26,31 @@ class ScoreKeeper:
         else:
             self.playerPoints[player_id] -= points  # playerPoints can be negative
         return self.playerPoints
+
+    # interface
+    def get_scores(self):
+        """
+            Gets the scores and playerTokens
+
+            Args:
+
+
+            Returns:
+            scores: mappying of playerIDs to scores
+        """
+        return self.playerPoints
+
+    # interface
+    def get_tokens(self):
+        """
+            Gets the playerTokens
+
+            Args:
+
+            Returns:
+            playerTokens: mappying of playerIDs to playerTokens
+        """
+        return self.playerTokens
 
     # interface
     def check_answer(self, user_answer, actual_answer, points, player_id):
@@ -48,40 +73,44 @@ class ScoreKeeper:
 
     # interface
     def has_token(self, player_id):
-        """Checks to see if there are any available questions in a category.
-
-            Args:
-            category: A string containing a category from the board.
-
-            Returns:
-            a boolean. True if that player has 1+ tokens, false if player has no tokens
         """
-        return self.tokens[player_id] > 0
+        Checks to see if player has any tokens
+
+        Args:
+        player_id: the player's identifier
+
+        Returns:
+        a boolean. True if that player has 1+ playerTokens, false if player has no playerTokens
+        """
+        if player_id not in self.playerTokens.keys():  # in case someone replaced defaultdict with dict
+            return False
+        num_tokens = self.playerTokens[player_id]
+        return num_tokens > 0
 
     # interface
     def use_token(self, player_id):
         """
-            Use a token from the player's stash of tokens.
+            Use a token from the player's stash of playerTokens.
 
             Args:
             player_id: The identifier of the player using the token
 
             Returns:
             success: a boolean representing whether the call was success or failure
-            tokens: a dict containing playerIDs mapped to their current token count
+            playerTokens: a dict containing playerIDs mapped to their current token count
         """
         success = False
         if self.has_token(player_id):
             # only remove token if player has at least one
-            self.tokens[player_id] -= 1
+            self.playerTokens[player_id] -= 1
             success = True
-        return success, self.tokens
+        return success, self.playerTokens
 
     # interface
     def bankrupt(self, player_id):
         """
             Bankrupt the given player.
-            Business rules: player score goes to 0. Player tokens set to 0.
+            Business rules: player score goes to 0. Player playerTokens set to 0.
 
             Args:
             player_id: the player's identification number
@@ -91,7 +120,7 @@ class ScoreKeeper:
         """
         success = False
         self.playerPoints[player_id] = 0
-        self.tokens[player_id] = 0
+        self.playerTokens[player_id] = 0
         return success
 
     def determine_winner(self):
