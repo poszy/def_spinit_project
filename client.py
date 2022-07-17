@@ -3,8 +3,8 @@
 import socket
 import threading
 import logging
-import pickle
 
+from server import Message, Messenger
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
 SRV_PORT = 5555
@@ -12,13 +12,14 @@ BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
 
 logging.basicConfig(level=logging.INFO)
+#
+# class Message:
+# 	def __init__(self, code, args):
+# 		self.code = code
+# 		self.args = args
 
-class Message:
-	def __init__(self, code, args):
-		self.code = code
-		self.args = args
 
-class Client:
+class Client(Messenger):
 
 	# default constructor
 	def __init__(self):
@@ -26,7 +27,11 @@ class Client:
 		self.whose_turn = 1  # pointer to curent player taking turn
 		self.game_over = False
 
+		# TODO: should actually get from Game Board!
 		self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]
+
+		self.request_map = {"1": "SPIN", "2": "SEE_SCORE", "3": "SELECT_CATEGORY"}
+
 
 	# SETUP SUBSYSTEMS
 	# self.ui = UserInterface()
@@ -36,37 +41,6 @@ class Client:
 		server.connect((host, port))
 		logging.info("Connecting to the game server")
 		threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
-
-	def buffer_message(self, client):
-		msg_flag = True
-		buffer = b''
-		while True:
-			pkt = client.recv(100)  # buffer the received data
-			if not pkt:
-				client.close
-				break
-			if msg_flag:
-				print("new message length:", pkt[:HEADER_SIZE])
-				msg_length = int(pkt[:HEADER_SIZE])
-				msg_flag = False
-
-			buffer += pkt
-			full_msg_length = len(buffer)
-			logging.info("message buffer length:" + str(full_msg_length))
-
-			if len(buffer) - HEADER_SIZE == msg_length:
-				logging.info("Full message received with length:" + str(full_msg_length))
-
-				print(buffer[HEADER_SIZE:])
-				# server_message = pkt.decode(BYTE_ENCODING)
-				server_message = pickle.loads(buffer[HEADER_SIZE:])
-				msg_flag = True
-				buffer = b''
-				# parsed_message = server_message.split(",", 1)
-				logging.info("-------------------------------------------------")
-				logging.info("Received message from server: %s", server_message)
-
-				return server_message # parsed_message
 
 	def handle_connection(self, client):
 		logging.info("Entered handle_connections")
@@ -82,27 +56,29 @@ class Client:
 				logging.info("Received spin result was: " + parsed_message.args)
 				if parsed_message.code == "SPIN_AGAIN":
 					spin_again = "1"
-					spin_again_command = Message("1", [])
+					spin_again_command = Message(spin_again, [])
 					client.send_command(spin_again_command)
-					# client.send(spin_again.encode("utf"))  # send message to game server
 
 			elif parsed_message.code == "SCORE":
 				logging.info("Received current scores: ", parsed_message.args)
 
 				dict_scores = parsed_message.args
-				logging.info("Received scores: ", dict_scores)
 				print("SCORES: ", dict_scores)
 
-			turn_message = ""
 			print("Enter a command for the game server:")
 			print("----- 1) Spin the wheel")
 			print("----- 2) See scores")
 			print("----- 3) Select Category")
 
-			turn_message = str(input("Command: "))
+			turn_message = ""
+			while turn_message not in self.request_map.keys():  # in case someone enters invalid option
+				turn_message = str(input("Command: "))
+			request = self.request_map[turn_message]  # map to request type
+
+			command = Message(request, [])
 
 			# Let player select the category
-			if turn_message == "3":
+			if request == "SELECT_CATEGORY":
 				print("Category Options:")
 				options = range(0, len(self.categories))
 				for cat in options:
@@ -112,9 +88,9 @@ class Client:
 				while selected_category not in options_str:
 					selected_category = input("Enter category number (1-" + str(len(self.categories)) + "): ")
 
-				turn_message += "," + selected_category
+				command = Message(request, selected_category)  # include category in the message
 
-			client.send(str(turn_message).encode("utf"))  # send message to game server
+			self.send_command(client, command)  # send message to game server
 
 		# self.game_over = True
 		# if self.whose_turn == self.player_id:  # it's my turn
@@ -143,11 +119,6 @@ class Client:
 		# 		# elif parse_request[0] == '' # some other command
 		# 		else:
 		# 			self.refresh_display()
-	def send_command(self, client, command):
-		command = pickle.dumps(command)
-		msg = bytes(f"{len(command):<{HEADER_SIZE}}", BYTE_ENCODING) + command  # add fixed length header to message
-		print(msg[HEADER_SIZE:])
-		client.send(msg)  # command to server
 
 	def refresh_score(self, score):
 		"""
