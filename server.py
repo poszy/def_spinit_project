@@ -1,16 +1,27 @@
 from board.board import Board
 # import score_keeper.score_keeper import ScoreKeeper
 import logging
+import pickle
 
 logging.basicConfig(level=logging.INFO)
-# from collections import defaultdict
+HEADER_SIZE = 10
 
 # https://www.youtube.com/watch?v=s6HOPw_5XuY
+
+# pickling and buffering : https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
 
 import socket
 import threading
 
 NUM_PLAYERS = 3
+MAX_SPINS = 3
+BYTE_ENCODING = 'utf-8'
+
+
+class Message:
+	def __init__(self, code, args):
+		self.code = code
+		self.args = args
 
 
 class GameServer:
@@ -27,10 +38,12 @@ class GameServer:
 		self.new_player_id = 1
 		self.players = []  # keep track of players
 
-		self.request_map = {1: "SPIN", 2: "SEE_SCORE", 3: "LIST_PLAYERS"}
+		self.request_map = {1: "SPIN", 2: "SEE_SCORE", 3: "SELECT_CATEGORY"}
 
 		# SETUP SUBSYSTEMS
 		self.board = Board()
+
+		self.num_spins = 0
 
 	# self.ExecutiveLogic = ExecutiveLogic()
 	# self.score_keeper = ScoreKeeper()
@@ -44,7 +57,8 @@ class GameServer:
 
 		client, addr = server.accept()  # next player connection
 
-		player_id_command = 'PlayerID,' + str(self.new_player_id)
+		# player_id_command = 'PlayerID,' + str(self.new_player_id)
+		player_id_command = Message("PlayerID", self.new_player_id)
 		self.send_command(client, player_id_command)
 
 		# client.send(bytes('Player add client to the players database
@@ -64,7 +78,7 @@ class GameServer:
 		# check for round over?
 		# self.ExecutiveLogic
 
-		while not self.game_over:
+		while self.num_spins <= MAX_SPINS:
 			turn_message = ""
 
 			logging.info("Handling connections...")
@@ -84,35 +98,79 @@ class GameServer:
 				break
 			else:
 				client_request = data.decode('utf')
-				# parse_request = client_request.split(',')
-				print("client request type:", type(client_request), client_request, self.request_map)
-				logging.info("Server received request from user: " + self.request_map[int(client_request)])
+				parse_request = client_request.split(',', 1)
+				logging.info("client request type:" + str(type(client_request)) + str(client_request)) # self.request_map)
+				logging.info("Server received request from user: " + self.request_map[int(parse_request[0])])
 
-				request_command = self.request_map[int(client_request)]
+				request_command = self.request_map[int(parse_request[0])]
 
-				if (request_command == "SPIN"):
+
+				# command = ""
+				command = Message("None", [])
+				if request_command == "SPIN":
 					logging.info("Server messaging WHEEL to SPIN ")
 
 					# send message to Wheel!
 					wheel_result = "History"  # TODO: get spin result from wheel
 					logging.info("Server got spin result from WHEEL:" + wheel_result)
-					self.send_command(client, "SPIN_RESULT," + wheel_result)
-			self.game_over = True
-			# # command = parse_request[0]
-			# args = parse_request[1:]
-		# 		if parse_request[0] == 'select_category':  # opponent selects category
-		# 			print("opponent" + self.player_id + "selecting the category")
-		# 			pass
-		# 		elif parse_request[0] =='check_answer': # check answer using server score_keeper
-		# 			print("checking score!")
-		# 			pass
-		# 		# elif parse_request[0] == '' # some other command
-		# 		else:
-		# 			self.refresh_display()
+					# command = Message("SPIN_RESULT", wheel_result)
+					command = Message("SPIN_RESULT", wheel_result)
+					self.num_spins += 1
 
+				elif request_command == "SEE_SCORE":
+					logging.info("Server received SEE SCORE request from user")
+
+					# get current score from the scorekeeper
+					logging.info(
+						"Server getting scores from the scorekeeper")  # TODO get current score from the scorekeeper
+					# scores = self.scorekeeper.getScores()
+					scores = {1: 100, 2: 100, 3: 100, 4: 100}
+
+					command = Message("SCORE", scores)
+					print("SCORES:", scores)
+
+				elif request_command == "SELECT_CATEGORY":
+					logging.info("Server received category selection from user")
+
+					# get next question from the board
+					logging.info("Server getting question from the board")  # TODO get question from board
+
+					next_question = "What is a byte?"
+					# command = "QUESTION," + next_question
+					command = Message("QUESTION", next_question)
+
+
+				self.send_command(client, command)
+
+			# send question message to the clients
+
+	# self.game_over = True
+	# # command = parse_request[0]
+	# args = parse_request[1:]
+
+	# 		if parse_request[0] == 'select_category':  # opponent selects category
+	# 			print("opponent" + self.player_id + "selecting the category")
+	# 			pass
+	# 		elif parse_request[0] =='check_answer': # check answer using server score_keeper
+	# 			print("checking score!")
+	# 			pass
+	# 		# elif parse_request[0] == '' # some other command
+	# 		else:
+	# 			self.refresh_display()
 	def send_command(self, client, command):
-		client.send(bytes(command, 'utf-8'))  # command to client
-		# client.close()  # close connection
+		command = pickle.dumps(command)
+
+		# if isinstance(command, str):
+		# 	command = pickle.dumps(command, -1)
+
+			# client.send(msg)  # command to client
+		# elif isinstance(command, bytes):
+		msg = bytes(f"{len(command):<{HEADER_SIZE}}", BYTE_ENCODING) + command  # add fixed length header to message
+		print(msg[HEADER_SIZE:])
+		client.send(msg)  # command to client
+
+
+	# client.close()  # close connection
 
 	def refresh_score(self, score):
 		"""
