@@ -12,12 +12,6 @@ BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
 
 logging.basicConfig(level=logging.INFO)
-#
-# class Message:
-# 	def __init__(self, code, args):
-# 		self.code = code
-# 		self.args = args
-
 
 class Client(Messenger):
 
