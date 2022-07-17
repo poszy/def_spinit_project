@@ -21,12 +21,15 @@ class Board:
 
 
     def is_catagory_available(category):
-        """Checks to see if there are any available questions in a category.
+        """
+        Checks to see if there are any available questions in a category.
 
-            Args:
-            category: A string containing a category from the board.
+        Args:
+        category: A string containing a category from the board.
 
-            Returns:
-            a boolean.
-         """
-         return boolean
+        Returns:
+        a boolean.
+        """
+
+        return False
+
