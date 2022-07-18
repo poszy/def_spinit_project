@@ -1,8 +1,9 @@
-
 from questions import Questions
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
+
 
 class Board:
 
@@ -10,7 +11,7 @@ class Board:
     def __init__(self):
         self.questions = Questions()
 
-    def get_question(self, catagory):
+    def get_question(self, category):
         """Gets the next question in point value from the board.
 
             Args:
@@ -21,21 +22,18 @@ class Board:
          """
 
         print("BOARD:(get_question) -- Checking isAvailable()")
-        isAvailable = self.is_catagory_available(catagory)
+        isAvailable = self.is_category_available(category)
         print("BOARD:(get_question) -- Got " + str(isAvailable) + " from isAvailable()")
 
         if isAvailable == True:
             print("BOARD:(get_question) -- Returning Question from Questions")
 
-
-            return self.questions.get_question(catagory)
+            return self.questions.get_question(category)
         else:
-            logging.info("BOARD:(get_question) -- Catagory is not avialable")
+            logging.info("BOARD:(get_question) -- Category is not available")
             print("BOARD:(get_question) -- Please Spin again")
 
-
-
-    def is_catagory_available(category):
+    def is_category_available(self, category):
         """
         Checks to see if there are any available questions in a category.
 
@@ -46,10 +44,8 @@ class Board:
         a boolean.
         """
 
-        print("BOARD:(is_catagory_available) -- Setting boolean ")
-        print("BOARD:(is_catagory_available) -- self.question.check_questions(catagory) ")
-        boolean = self.questions.check_question(catagory)
-
+        print("BOARD:(is_category_available) -- Setting boolean ")
+        print("BOARD:(is_category_available) -- self.question.check_questions(category) ")
+        boolean = self.questions.check_question(category)
 
         return boolean
-

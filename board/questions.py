@@ -1,60 +1,56 @@
 import logging
 
 
-
 class Questions:
 
     # default constructor
     def __init__(self):
         self.politics = {
-          1: {'question': 'politics quesiton 1', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 100},
-          2: {'question': 'politics quesiton 2', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 200},
-          3: {'question': 'politics quesiton 3', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 400},
-          4: {'question': 'politics quesiton 4', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 800},}
-        self.politics_iterator=1
+            1: {'question': 'politics question 1', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 100},
+            2: {'question': 'politics question 2', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 200},
+            3: {'question': 'politics question 3', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 400},
+            4: {'question': 'politics question 4', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 800}, }
+        self.politics_iterator = 1
 
         self.food = {
-          1: {'question': 'food quesiton 1', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 100},
-          2: {'question': 'food quesiton 2', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 200},
-          3: {'question': 'food quesiton 3', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 400},
-          4: {'question': 'food quesiton 4', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 800},}
-        self.food_iterator=1
-        self.no_category="There are no more questions left in this category. Spin Again"
+            1: {'question': 'food question 1', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 100},
+            2: {'question': 'food question 2', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 200},
+            3: {'question': 'food question 3', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 400},
+            4: {'question': 'food question 4', 'answers': 'a, b, c, d', 'rAnswer': 'c', 'points': 800}, }
+        self.food_iterator = 1
+        self.no_category = "There are no more questions left in this category. Spin Again"
 
+    def check_question(self, category):
 
-    def check_question(self,catagory):
+        print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
 
-        print("QUESTIONS:(check_question) -- Checking Catagory: " + str(catagory))
-
-        if catagory == "politics":
+        if category == "politics":
 
             if len(self.politics) == 0:
-                print("QUESTIONS:(check_question) -- Catagory has no more questions availble. Returning False")
+                print("QUESTIONS:(check_question) -- Category has no more questions available. Returning False")
                 return False
             else:
-                print("QUESTIONS:(check_question) -- Catagory: " + str(catagory) + " has questions. Returning True")
+                print("QUESTIONS:(check_question) -- Category: " + str(category) + " has questions. Returning True")
                 return True
 
-        if catagory == "food":
+        if category == "food":
 
             if len(self.food) == 0:
-                print("QUESTIONS:(check_question) -- Catagory has no more questions availble. Returning False")
+                print("QUESTIONS:(check_question) -- Category has no more questions available. Returning False")
                 return False
             else:
-                print("QUESTIONS:(check_question) -- Catagory: " + str(catagory) + " has questions. Returning True")
+                print("QUESTIONS:(check_question) -- Category: " + str(category) + " has questions. Returning True")
                 return True
 
+    def get_question(self, category):
 
-    def get_question(self, catagory):
-
-        if catagory == "politics":
-
-            print("QUESTIONS:(get_question) -- current iterator value " + str (self.politics_iterator))
-            # Get Question thats next in line
+        if category == "politics":
+            print("QUESTIONS:(get_question) -- current iterator value " + str(self.politics_iterator))
+            # Get Question that's next in line
             print("QUESTIONS:(get_question) -- got question ")
             question = self.politics[self.politics_iterator]["question"]
 
-            print("QUESTIONS:(get_question) -- removed question from catagory ")
+            print("QUESTIONS:(get_question) -- removed question from category ")
             # Delete the question from Dictionary
             del self.politics[self.politics_iterator]
 
@@ -66,14 +62,13 @@ class Questions:
             print("QUESTIONS:(get_question) -------------------------------------- ")
             return question
 
-        if catagory == "food":
-
-            print("QUESTIONS:(get_question) -- current iterator value " + str (self.food_iterator))
-            # Get Question thats next in line
+        if category == "food":
+            print("QUESTIONS:(get_question) -- current iterator value " + str(self.food_iterator))
+            # Get Question that's next in line
             print("QUESTIONS:(get_question) -- got question ")
             question = self.food[self.food_iterator]["question"]
 
-            print("QUESTIONS:(get_question) -- removed question from catagory ")
+            print("QUESTIONS:(get_question) -- removed question from category ")
             # Delete the question from Dictionary
             del self.food[self.food_iterator]
 
@@ -85,13 +80,12 @@ class Questions:
             print("QUESTIONS:(get_question) -------------------------------------- ")
             return question
 
+# a = Questions()
+# a.check_question("politics")
+# a.get_question("politics")
+# a.get_question("politics")
+# a.get_question("politics")
+# a.get_question("politics")
+# a.get_question("politics")
 
-#a = Questions()
-#a.check_question("politics")
-#a.get_question("politics")
-#a.get_question("politics")
-#a.get_question("politics")
-#a.get_question("politics")
-#a.get_question("politics")
-
-#a.get_question("food")
+# a.get_question("food")
