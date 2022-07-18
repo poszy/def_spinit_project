@@ -20,72 +20,71 @@ class Questions:
         self.food_iterator = 1
         self.no_category = "There are no more questions left in this category. Spin Again"
 
-    def check_question(self, category):
+    def is_category_open(self, category):
 
         print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
 
         if category == "politics":
-
-            if len(self.politics) == 0:
-                print("QUESTIONS:(check_question) -- Category has no more questions available. Returning False")
-                return False
-            else:
-                print("QUESTIONS:(check_question) -- Category: " + str(category) + " has questions. Returning True")
-                return True
+            return len(self.politics) > 0
 
         if category == "food":
+            return len(self.food) > 0
 
-            if len(self.food) == 0:
-                print("QUESTIONS:(check_question) -- Category has no more questions available. Returning False")
-                return False
-            else:
-                print("QUESTIONS:(check_question) -- Category: " + str(category) + " has questions. Returning True")
-                return True
+    def get_open_categories(self, round):
+        # TODO: incorporate the ROUND
+        open_categories = []
 
-    def get_question(self, category):
+        # for category_name, questions_dict in self.questions_dicts[round]:
+        #     if len(questions_dict) > 0:  # category questions dict still has questions
+        #         open_categories.append(category_name)
+        open_categories = ["Politics", "Food"]
+        return open_categories
+
+    def get_tile(self, category, round):
+        # TODO: implement code to work with round
 
         if category == "politics":
-            print("QUESTIONS:(get_question) -- current iterator value " + str(self.politics_iterator))
+            print("QUESTIONS:(get_tile) -- current iterator value " + str(self.politics_iterator))
             # Get Question that's next in line
-            print("QUESTIONS:(get_question) -- got question ")
-            question = self.politics[self.politics_iterator]["question"]
+            print("QUESTIONS:(get_tile) -- got question ")
+            question = self.politics[self.politics_iterator]
 
-            print("QUESTIONS:(get_question) -- removed question from category ")
+            print("QUESTIONS:(get_tile) -- removed question from category ")
             # Delete the question from Dictionary
             del self.politics[self.politics_iterator]
 
             # Dictionary indexes do not update. so we have to track the indexes
             # With a global variable
-            print("QUESTIONS:(get_question) -- incrementing iterator ")
+            print("QUESTIONS:(get_tile) -- incrementing iterator ")
             self.politics_iterator = self.politics_iterator + 1
 
-            print("QUESTIONS:(get_question) -------------------------------------- ")
+            print("QUESTIONS:(get_tile) -------------------------------------- ")
             return question
 
         if category == "food":
-            print("QUESTIONS:(get_question) -- current iterator value " + str(self.food_iterator))
+            print("QUESTIONS:(get_tile) -- current iterator value " + str(self.food_iterator))
             # Get Question that's next in line
-            print("QUESTIONS:(get_question) -- got question ")
-            question = self.food[self.food_iterator]["question"]
+            print("QUESTIONS:(get_tile) -- got question ")
+            question = self.food[self.food_iterator]
 
-            print("QUESTIONS:(get_question) -- removed question from category ")
+            print("QUESTIONS:(get_tile) -- removed question from category ")
             # Delete the question from Dictionary
             del self.food[self.food_iterator]
 
             # Dictionary indexes do not update. so we have to track the indexes
             # With a global variable
-            print("QUESTIONS:(get_question) -- incrementing iterator ")
+            print("QUESTIONS:(get_tile) -- incrementing iterator ")
             self.food_iterator = self.food_iterator + 1
 
-            print("QUESTIONS:(get_question) -------------------------------------- ")
+            print("QUESTIONS:(get_tile) -------------------------------------- ")
             return question
 
 # a = Questions()
 # a.check_question("politics")
-# a.get_question("politics")
-# a.get_question("politics")
-# a.get_question("politics")
-# a.get_question("politics")
-# a.get_question("politics")
+# a.get_tile("politics")
+# a.get_tile("politics")
+# a.get_tile("politics")
+# a.get_tile("politics")
+# a.get_tile("politics")
 
-# a.get_question("food")
+# a.get_tile("food")
