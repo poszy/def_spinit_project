@@ -35,16 +35,16 @@ class Board:
 
 
 
+    def is_catagory_available(category):
+        """
+        Checks to see if there are any available questions in a category.
 
-    def is_catagory_available(self, catagory):
-        """Checks to see if there are any available questions in a category.
+        Args:
+        category: A string containing a category from the board.
 
-            Args:
-            category: A string containing a category from the board.
-
-            Returns:
-            a boolean.
-         """
+        Returns:
+        a boolean.
+        """
 
         print("BOARD:(is_catagory_available) -- Setting boolean ")
         print("BOARD:(is_catagory_available) -- self.question.check_questions(catagory) ")
@@ -52,7 +52,4 @@ class Board:
 
 
         return boolean
-
-
-
 
