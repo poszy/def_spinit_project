@@ -19,10 +19,10 @@ class Test_Board_and_Question(unittest.TestCase):
 
         # category is empty
         empty_category_ret = a.get_tile("politics", 1)
-        self.assertEqual(empty_category_ret, None)
+        self.assertFalse(empty_category_ret)
 
         not_category_ret = a.get_tile("TUBBYWUBBY", 2)
-        self.assertEqual(not_category_ret, None)
+        self.assertFalse(not_category_ret)
 
     def test_get_available_categories(self):
         b = board.Board()
@@ -42,7 +42,7 @@ class Test_Board_and_Question(unittest.TestCase):
 
         # category is empty
         empty_category_ret = b.get_tile("food", 1)
-        self.assertEqual(empty_category_ret, None)
+        self.assertFalse(empty_category_ret)
 
         # category is empty
 

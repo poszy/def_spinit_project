@@ -24,11 +24,17 @@ class Questions:
 
         print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
 
+        category_open = False
         if category == "politics":
-            return len(self.politics) > 0
+            category_open = len(self.politics) > 0
+
 
         if category == "food":
-            return len(self.food) > 0
+            category_open = len(self.food) > 0
+
+        print(f"QUESTIONS:(check_question) -- Category: {category} is available: {category_open}")
+
+        return category_open
 
     def get_open_categories(self, round):
         # TODO: incorporate the ROUND
