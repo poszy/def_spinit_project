@@ -1,5 +1,8 @@
 from board.board import Board
-# import score_keeper.score_keeper import ScoreKeeper
+from executive_logic.executive_logic import ExecutiveLogic
+from score_keeper.score_keeper import ScoreKeeper
+from ui.user_interface import UserInterface
+from wheel.wheel import Wheel
 import logging
 import pickle
 
@@ -73,7 +76,7 @@ class GameServer(Messenger):
 		self.port = srv_port
 
 		self.player_id = 1
-		self.whose_turn = 1  # pointer to curent player taking turn
+		self.whose_turn = 1  # pointer to current player taking turn
 		self.game_over = False
 
 		self.new_player_id = 1
@@ -82,12 +85,12 @@ class GameServer(Messenger):
 
 		# SETUP SUBSYSTEMS
 		self.board = Board()
+		self.executive_logic = ExecutiveLogic()
+		self.score_keeper = ScoreKeeper()
+		self.wheel = Wheel()
+		self.ui = UserInterface()
 
 		self.num_spins = 0  # TODO: this should really be held by the ExecutiveLogic
-
-	# self.ExecutiveLogic = ExecutiveLogic()
-	# self.score_keeper = ScoreKeeper()
-	# self.wheel = Wheel()
 
 	def host_game(self):
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket

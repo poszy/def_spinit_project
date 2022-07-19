@@ -1,24 +1,28 @@
-
+'''
 # startgame (list_of_configurations):
 - apply configuration 
 - start round 
-    - chose_ctagory()
-- loop until finsihed
+    - chose_catagory()
+- loop until finished
 
-return results_of_game # total pooints 
+return results_of_game # total points
+'''
 
+class ExecutiveLogic:
+    def __init__(self):
+        pass
 
-def notifySpin():
-    pass 
+    def notifySpin(self):
+        pass
 
-def getRound():
-    pass 
+    def getRound(self):
+        pass
 
-def whoseTurn():
-    pass 
+    def whoseTurn(self):
+        pass
 
-def selectRandOpponent():
-    pass 
+    def selectRandOpponent(self):
+        pass
 
 
 
