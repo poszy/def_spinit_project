@@ -42,6 +42,7 @@ class Client(Messenger):
 		# self.ExecutiveLogic
 		while not self.game_over:
 			parsed_message = self.buffer_message(client)
+			logging.info("Received message with command code: %s", parsed_message.code)
 
 			if parsed_message.code == "PlayerID":
 				self.player_id = parsed_message.args
@@ -58,6 +59,8 @@ class Client(Messenger):
 
 				dict_scores = parsed_message.args
 				print("SCORES: ", dict_scores)
+
+			print("\n\n=====================================================\n\n")
 
 			print("Enter a command for the game server:")
 			print("----- 1) Spin the wheel")
@@ -80,8 +83,9 @@ class Client(Messenger):
 					selected_category = ""
 				options_str = [str(opt) for opt in options]
 				while selected_category not in options_str:
-					selected_category = input("Enter category number (1-" + str(len(self.categories)) + "): ")
-
+					max_opt = str(len(self.categories)-1)
+					selected_category = input(f"Enter category number (0- {max_opt}): ")
+					print(f"selected_category = {selected_category}")
 				command = Message(request, selected_category)  # include category in the message
 
 			self.send_command(client, command)  # send message to game server
