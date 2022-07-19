@@ -26,9 +26,9 @@ class InterfaceDemo(GameServer):
     def __demo_board(self):
         logging.info("\n\nPinging Board Interfaces")
 
-        logging.info("get_tile(): %s", self.board.get_tile("Category1", 1))
-        logging.info("is_category_available(): %s", self.board.is_category_available("Category1", 1))
-        logging.info("get_available_categories(): %s", self.board.get_available_categories(1))
+        logging.info('get_tile("food"): %s', self.board.get_tile("food", 1))
+        logging.info('is_category_available("politics"): %s', self.board.is_category_available("politics", 1))
+        logging.info("get_available_categories(1): %s", self.board.get_available_categories(1))
 
     def __demo_wheel(self):
         logging.info("\n\nPinging Wheel Interfaces")
