@@ -1,11 +1,11 @@
- import random
+import random
+
 
 class Wheel:
 
     def __init__(self):
         self.this = ""
-        self.catagory_list = ["food","politics","history","math","sports"]
-
+        self.category_list = ["food", "politics", "history", "math", "sports"]
 
     def get_spin_result(self):
         """Gets the spin result.
@@ -14,30 +14,29 @@ class Wheel:
             None
 
             Returns:
-            a string containing the catagory
+            a string containing the category
          """
 
-        #Poc logic. Generate random # 0-4
-        rand = random.randint(0,4)
+        # Poc logic. Generate random # 0-4
+        rand = random.randint(0, 4)
 
-        # Access catagory_list with that number
-        spin_result = self.catagory_list[rand]
+        # Access category_list with that number
+        spin_result = self.category_list[rand]
 
         return spin_result
 
-    def update_catagories(self, catagory_list):
-        """Updates the catagories
+    def update_categories(self, category_list):
+        """Updates the categories
 
             Args:
             category: A list of strings containing categories from the board.
 
-            Returns: an updated verion of self.catagory_list
+            Returns: an updated version of self.category_list
          """
 
-        # Grab the origonal catagory_list from obj creation
-        # and modify the catagories that are passed in from this function
+        # Grab the original category_list from obj creation
+        # and modify the categories that are passed in from this function
         # Dummy Logic
-        self.catagory = self.catagory_list - catagory_list
+        self.category_list = category_list
 
-
-        return self.catagory_list
+        return self.category_list
