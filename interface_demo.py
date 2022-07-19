@@ -1,6 +1,6 @@
 from server import GameServer
 import logging
-
+from collections import defaultdict
 class InterfaceDemo(GameServer):
 
     def demo_all_interfaces(self):
@@ -12,13 +12,16 @@ class InterfaceDemo(GameServer):
 
     def __demo_score_keeper(self):
         logging.info("\n\nPinging Scorekeeper Interfaces")
-
+        add_items = [("Wil", 1000, 1), ("Luis", 9999, 3), ("Robyn", 1024, 0)]
+        for player, pts, tokens in add_items:
+            self.score_keeper.playerPoints[player] = pts
+            self.score_keeper.playerTokens[player] = tokens
         logging.info("get_scores(): %s", self.score_keeper.get_scores())
         logging.info("get_tokens(): %s", self.score_keeper.get_tokens())
-        logging.info("check_answer(): %s", self.score_keeper.check_answer("Right Answer", "Right Answer", 0, self.player_id))
-        logging.info("has_token(): %s", self.score_keeper.has_token(self.player_id))
-        logging.info("use_token(): %s", self.score_keeper.use_token(self.player_id))
-        logging.info("bankrupt(): %s", self.score_keeper.bankrupt(self.player_id))
+        logging.info("check_answer(): %s", self.score_keeper.check_answer("Right Answer", "Right Answer", 1, "Luis"))
+        logging.info("has_token('Wil'): %s", self.score_keeper.has_token("Wil"))
+        logging.info("use_token('Wil'): %s", self.score_keeper.use_token("Wil"))
+        logging.info("bankrupt('Robyn'): %s", self.score_keeper.bankrupt("Robyn"))
 
     def __demo_board(self):
         logging.info("\n\nPinging Board Interfaces")
