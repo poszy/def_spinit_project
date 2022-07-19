@@ -36,7 +36,7 @@ class InterfaceDemo(GameServer):
         logging.info("\n\nPinging UI Interfaces")
 
     def __demo_executive_logic(self):
-        logging.info("\n\nPinging Wheel Interfaces")
+        logging.info("\n\nPinging Executive Logic Interfaces")
 
         logging.info("notifySpin(): %s", self.executive_logic.notifySpin())
         logging.info("getRound(): %s", self.executive_logic.getRound())
