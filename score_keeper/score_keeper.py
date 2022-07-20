@@ -60,7 +60,7 @@ class ScoreKeeper:
             Args:
             userAnswer: A string containing user's answer selection.
             actualAnswer: A string containing actual answer.
-            playerPoints: mapping of playerIDs to their point totals
+            points: Integer number of points that question was worth
             player_id: the player who answered
 
             Returns:

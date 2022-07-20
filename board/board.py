@@ -1,4 +1,4 @@
-from questions import Questions
+from board.questions import Questions
 
 import logging
 
