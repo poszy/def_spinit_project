@@ -1,5 +1,8 @@
 from board.board import Board
-# import score_keeper.score_keeper import ScoreKeeper
+from executive_logic.executive_logic import ExecutiveLogic
+from score_keeper.score_keeper import ScoreKeeper
+from ui.user_interface import UserInterface
+from wheel.wheel import Wheel
 import logging
 import pickle
 
@@ -32,7 +35,7 @@ class Messenger():
 	def send_command(self, client, command):
 		command = pickle.dumps(command)
 		msg = bytes(f"{len(command):<{HEADER_SIZE}}", BYTE_ENCODING) + command  # add fixed length header to message
-		print(msg[HEADER_SIZE:])
+		# print(msg[HEADER_SIZE:])
 		client.send(msg)  # command to client
 
 	def buffer_message(self, client):
@@ -44,7 +47,7 @@ class Messenger():
 				client.close
 				break
 			if msg_flag:
-				print("new message length:", pkt[:HEADER_SIZE])
+				# print("new message length:", pkt[:HEADER_SIZE])
 				msg_length = int(pkt[:HEADER_SIZE])
 				msg_flag = False
 
@@ -55,7 +58,7 @@ class Messenger():
 			if len(buffer) - HEADER_SIZE == msg_length:
 				logging.info("Full message received with length:" + str(full_msg_length))
 
-				print(buffer[HEADER_SIZE:])
+				# print(buffer[HEADER_SIZE:])
 				server_message = pickle.loads(buffer[HEADER_SIZE:])
 				msg_flag = True
 				buffer = b''
@@ -73,7 +76,7 @@ class GameServer(Messenger):
 		self.port = srv_port
 
 		self.player_id = 1
-		self.whose_turn = 1  # pointer to curent player taking turn
+		self.whose_turn = 1  # pointer to current player taking turn
 		self.game_over = False
 
 		self.new_player_id = 1
@@ -82,12 +85,12 @@ class GameServer(Messenger):
 
 		# SETUP SUBSYSTEMS
 		self.board = Board()
+		self.executive_logic = ExecutiveLogic()
+		self.score_keeper = ScoreKeeper()
+		self.wheel = Wheel()
+		self.ui = UserInterface()
 
 		self.num_spins = 0  # TODO: this should really be held by the ExecutiveLogic
-
-	# self.ExecutiveLogic = ExecutiveLogic()
-	# self.score_keeper = ScoreKeeper()
-	# self.wheel = Wheel()
 
 	def host_game(self):
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
@@ -124,9 +127,11 @@ class GameServer(Messenger):
 		# 	turn_message = "turn over"
 
 		while self.num_spins <= MAX_SPINS:
+			print("\n\n=====================================================\n\n")
 			parsed_message = self.buffer_message(client)
 
 			request_command = parsed_message.code
+			logging.info("Received message with command code: %s", request_command)
 			# request_args = parsed_message.args
 
 			command = Message("None", [])
@@ -154,12 +159,11 @@ class GameServer(Messenger):
 
 			elif request_command == "SELECT_CATEGORY":
 				selected_category = parsed_message.args
-
-				logging.info("Server received category selection from user", selected_category)
+				logging.info(f"Server received category selection from user { selected_category}")
 
 				# get next question from the board
-				logging.info("Server getting question from the board from category",
-				             selected_category)  # TODO get question from board
+				# logging.info("Server getting question from the board from category",
+				#              selected_category)  # TODO get question from board
 
 				next_question = "What is a byte?"
 				command = Message("QUESTION", next_question)
