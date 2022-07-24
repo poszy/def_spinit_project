@@ -6,7 +6,7 @@ skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 participant Client1 #Plum
 participant Client2 #Plum
 
-box "Game Server" #LightBlue
+box "Game Server" #LightSteelBlue
 participant MessageServer as Server
 participant ExecutiveLogic
 participant GameBoard
@@ -20,18 +20,18 @@ Client2 -> Server: send("PlayerID", ID)
 
 
 Server -> ExecutiveLogic : startGame([playerID])
-loop 2 rounds
+loop#Gold 2 times
     ExecutiveLogic -> ExecutiveLogic: incrementRound()
 
     == START ROUND ==
-    loop number of spins < 50 and board is not empty
+    loop#Gold number of spins < 50 and board is not empty
         == START TURN ==
         Server <- ExecutiveLogic : whoseTurn()
 
-        group Prompt Player to Spin
+        group#mediumseagreen Prompt Player to Spin
             Client1 <- Server: send("pleaseSpin", playerID)
 
-            alt Player responds
+            alt#MediumTurquoise Player responds
 
                 Client1 -> Server: send("Spin Wheel")
                 Server -> ExecutiveLogic: spinRequest()
@@ -48,6 +48,7 @@ loop 2 rounds
         ExecutiveLogic -> Wheel : getSpinResult()
         ExecutiveLogic -> ExecutiveLogic : incrementSpinCounter()
 
+        Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 
 
         ref over Client1, ScoreKeeper

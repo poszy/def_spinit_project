@@ -7,60 +7,38 @@ skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 participant Client1 #Plum
 participant Client2 #Plum
 
-box "Game Server" #LightBlue
+box "Game Server" #LightSteelBlue
 participant MessageServer as Server
 participant ExecutiveLogic
 participant GameBoard
 participant ScoreKeeper
 participant Wheel
-
 end box
 
-Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult, spinsRemain)
+Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
 Client1 <- Server: send("spinDisplay", spinResult, spinsRemain)
 Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 
-alt Player's or Opponent's Choice
+alt#MediumTurquoise Player's or Opponent's Choice
     Server <- ExecutiveLogic: selectCategory(playerID, categories)
     Client1 <- Server: send("selectCategory", [categories])
     Client1 -> Server: send("Category", category)
+    Server -> ExecutiveLogic: selectedCategory(category)
 
-    loop Player Answers Questions until category is empty
-        ExecutiveLogic -> GameBoard: getTile(round, category)
-
-        Client1 <- Server: send("Question", question, answers)
-
-        alt Player responds
-
-            Client1 -> Server: send("AnswerChoice", playerAns)
-
-            ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
-            ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
-            
-            alt Player answers correctly
-                ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
-            else Incorrect answer
-                ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
-                alt Player has 1+ has token
-                    ref over Client1, ExecutiveLogic #PaleGreen
-                      Prompt Player to use token 
-                    end ref
-                else Player has 0 tokens
-                    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
-                break
-                end
-
-
-                end
-            end
-
-        else No player response
-            Server -> ExecutiveLogic: timeout()
-            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
-            break
-            end
-        end
+    loop#Gold until category is empty
+            ref over Client1, ScoreKeeper
+            Player Answers Question
+        end ref
     end
+
+else Category
+    loop#Gold until category is empty
+        ref over Client1, ScoreKeeper
+            Player Answers Question
+        end ref
+    end
+
+
 
 
 else  Free Spin

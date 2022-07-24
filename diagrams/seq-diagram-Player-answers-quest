@@ -1,0 +1,56 @@
+@startuml Player Answers Question
+title Player Answers Questions
+
+skinparam sequenceReferenceBackgroundColor palegreen
+skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
+
+participant Client1 #Plum
+participant Client2 #Plum
+
+box "Game Server" #LightSteelBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+participant GameBoard
+participant ScoreKeeper
+end box
+
+
+ExecutiveLogic -> GameBoard: getTile(round, category)
+Server <- ExecutiveLogic: askQuestion(question, [ansChoice])
+
+Client1 <- Server: send("Question", question, [ansChoice])
+
+    alt#MediumTurquoise Player responds
+
+        Client1 -> Server: send("AnswerChoice", playerAns)
+        Server <-> ExecutiveLogic: playerAns(plyerAns)
+
+
+        ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
+        ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
+        
+        alt#MediumTurquoise Player answers correctly
+            ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
+        else Player answers incorrectly
+            ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
+            alt#MediumTurquoise Player has 1+ has token
+                ref over Client1, ExecutiveLogic #PaleGreen
+                    Prompt Player to use token 
+                end ref
+            else Player has 0 tokens
+                ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+            break
+            end
+
+
+            end
+        end
+
+    else No player response
+        Server -> ExecutiveLogic: timeout()
+        ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+        break
+        end
+    end
+
+@enduml
