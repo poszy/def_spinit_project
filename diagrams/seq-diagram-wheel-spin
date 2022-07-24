@@ -1,0 +1,82 @@
+@startuml Respond to Wheel Spin
+participant Client1 #lightblue
+participant Client2 #lightblue
+
+Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult, spinsRemain)
+Client1 <- Server: send("spinDisplay", spinResult, spinsRemain)
+Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
+
+alt Player's or Opponent's Choice
+    Server <- ExecutiveLogic: selectCategory(playerID, categories)
+    Client1 <- Server: send("selectCategory", [categories])
+    Client1 -> Server: send("Category", category)
+
+    loop Player Answers Questions until category is empty
+        ExecutiveLogic -> GameBoard: getTile(round, category)
+
+        Client1 <- Server: send("Question", question, answers)
+
+        alt Player responds
+
+            Client1 -> Server: send("AnswerChoice", playerAns)
+
+            ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
+            ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
+            
+            alt Player answers correctly
+                ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
+            else Incorrect answer
+                ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
+                alt Player has 1+ has token
+                    group Prompt Player to use token
+                        Server <- ExecutiveLogic: askUseToken(playerID)
+
+                        Client1 <- Server: send(playerID, "useToken?")
+
+                        alt Player responds YES
+
+                            Client1 -> Server: send("useToken")
+                            Server -> ExecutiveLogic: useToken()
+                            ExecutiveLogic -> ScoreKeeper: useToken()
+                        else Player responds NO
+                            Client1 -> Server: send("NOTuseToken")
+                            Server -> ExecutiveLogic: NOTuseToken()
+                            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+                        else No player response
+                            Server -> ExecutiveLogic: timeout()
+                            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+
+                        end
+                    end
+                else Player has 0 tokens
+                    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+                break
+                end
+
+
+                end
+            end
+
+        else No player response
+            Server -> ExecutiveLogic: timeout()
+            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+            break
+            end
+        end
+    end
+
+
+else  Free Spin
+    ExecutiveLogic -> ScoreKeeper: addToken(playerID)
+
+else Spin again
+    ExecutiveLogic -> Wheel: getSpinResult()
+else Bankrupt
+    ExecutiveLogic -> ScoreKeeper: bankrupt(playerID)
+    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+else Lose Turn
+    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+end
+    
+
+@enduml
