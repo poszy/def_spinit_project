@@ -1,5 +1,5 @@
-@startuml Prompt Player to use token
-title Prompt Player to use token
+@startuml Prompt Player to Use Token
+title Prompt Player to Use Token
 
 participant Client1 #Plum
 participant Client2 #Plum

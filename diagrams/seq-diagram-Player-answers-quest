@@ -1,5 +1,5 @@
 @startuml Player Answers Question
-title Player Answers Questions
+title Player Answers Question
 
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
