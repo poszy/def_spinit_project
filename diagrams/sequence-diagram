@@ -1,4 +1,4 @@
-@startuml Players Play a Round
+@startuml Players Play a WoJ Game
 
 participant Client1
 participant Client2
@@ -10,6 +10,8 @@ Client2 -> Server: send("PlayerID", ID)
 
 Server -> ExecutiveLogic : startGame([playerID])
 loop 2 rounds
+    ExecutiveLogic -> ExecutiveLogic: incrementRound()
+
     == START ROUND ==
     loop number of spins < 50 and board is not empty
         == START TURN ==
@@ -33,10 +35,12 @@ loop 2 rounds
         ExecutiveLogic -> GameBoard : getAvailableCategories()
         ExecutiveLogic -> Wheel : updateCategories()
         ExecutiveLogic -> Wheel : getSpinResult()
+        ExecutiveLogic -> ExecutiveLogic : incrementSpinCounter()
 
-        Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult)
-        Client1 <- Server: send("updateDisplay", spinResult)
-        Client2 <- Server: send("updateDisplay", spinResult)
+
+        Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult, spinsRemain)
+        Client1 <- Server: send("spinDisplay", spinResult, spinsRemain)
+        Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 
         alt Player's or Opponent's Choice
             Server <- ExecutiveLogic: selectCategory(playerID, categories)
@@ -53,14 +57,16 @@ loop 2 rounds
                     Client1 -> Server: send("AnswerChoice", playerAns)
 
                     ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
-                    ExecutiveLogic -> ScoreKeepr : updateScore(playerID, playerCorrect, points)
+                    ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
                     
                     alt Player answers correctly
                         ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
                     else Incorrect answer
-                        ExecutiveLogic -> ScoreKeepr : hasToken(playerID)
+                        ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
                         alt Player has 1+ has token
                             group Prompt Player to use token
+                                Server <- ExecutiveLogic: askUseToken(playerID)
+
                                 Client1 <- Server: send(playerID, "useToken?")
 
                                 alt Player responds YES
@@ -77,7 +83,7 @@ loop 2 rounds
                                     ExecutiveLogic -> ExecutiveLogic: nextPlayer()
 
                                 end
-
+                            end
                         else Player has 0 tokens
                             ExecutiveLogic -> ExecutiveLogic: nextPlayer()
                         break
@@ -97,25 +103,26 @@ loop 2 rounds
         
         
         else  Free Spin
-                ExecutiveLogic -> ScoreKeepr: updateToken(playerID)
+                ExecutiveLogic -> ScoreKeeper: addToken(playerID)
 
         else Spin again
             ExecutiveLogic -> Wheel: getSpinResult()
         else Bankrupt
-            ExecutiveLogic -> ScoreKeepr: bankrupt(playerID)
+            ExecutiveLogic -> ScoreKeeper: bankrupt(playerID)
             ExecutiveLogic -> ExecutiveLogic: nextPlayer()
         else Lose Turn
             ExecutiveLogic -> ExecutiveLogic: nextPlayer()
         end
-
+    
     end
-
+end
     == END GAME ==
 
-    ExecutiveLogic -> ScoreKeeper: getWinner()
+    ExecutiveLogic -> ScoreKeeper: determineWinner()
+    ExecutiveLogic -> Server: endGame(winner)
 
     Client1 <- Server: send("GAMEOVER", playerID)
     Client2 <- Server: send("GAMEOVER", playerID)
 
-end
+
 @enduml
