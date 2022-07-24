@@ -1,0 +1,121 @@
+@startuml Players Play a Round
+
+participant Client1
+participant Client2
+Client1 -> Server: connect(svrIP, svrPort)
+Client1 <- Server: send("PlayerID", ID)
+Client2 -> Server: connect(svrIP, svrPort)
+Client2 -> Server: send("PlayerID", ID)
+
+
+Server -> ExecutiveLogic : startGame([playerID])
+loop 2 rounds
+    == START ROUND ==
+    loop number of spins < 50 and board is not empty
+        == START TURN ==
+        Server <- ExecutiveLogic : whoseTurn()
+
+        group Prompt Player to Spin
+            Client1 <- Server: send("pleaseSpin", playerID)
+
+            alt Player responds
+
+                Client1 -> Server: send("Spin Wheel")
+                Server -> ExecutiveLogic: spinRequest()
+
+            else No player response
+                Server -> ExecutiveLogic: timeout()
+                ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+
+            end
+        end
+
+        ExecutiveLogic -> GameBoard : getAvailableCategories()
+        ExecutiveLogic -> Wheel : updateCategories()
+        ExecutiveLogic -> Wheel : getSpinResult()
+
+        Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult)
+        Client1 <- Server: send("updateDisplay", spinResult)
+        Client2 <- Server: send("updateDisplay", spinResult)
+
+        alt Player's or Opponent's Choice
+            Server <- ExecutiveLogic: selectCategory(playerID, categories)
+            Client1 <- Server: send("selectCategory", [categories])
+            Client1 -> Server: send("Category", category)
+
+            loop Player Answers Questions until category is empty
+                ExecutiveLogic -> GameBoard: getTile(round, category)
+
+                Client1 <- Server: send("Question", question, answers)
+
+                alt Player responds
+
+                    Client1 -> Server: send("AnswerChoice", playerAns)
+
+                    ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
+                    ExecutiveLogic -> ScoreKeepr : updateScore(playerID, playerCorrect, points)
+                    
+                    alt Player answers correctly
+                        ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
+                    else Incorrect answer
+                        ExecutiveLogic -> ScoreKeepr : hasToken(playerID)
+                        alt Player has 1+ has token
+                            group Prompt Player to use token
+                                Client1 <- Server: send(playerID, "useToken?")
+
+                                alt Player responds YES
+
+                                    Client1 -> Server: send("useToken")
+                                    Server -> ExecutiveLogic: useToken()
+                                    ExecutiveLogic -> ScoreKeeper: useToken()
+                                else Player responds NO
+                                    Client1 -> Server: send("NOTuseToken")
+                                    Server -> ExecutiveLogic: NOTuseToken()
+                                    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+                                else No player response
+                                    Server -> ExecutiveLogic: timeout()
+                                    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+
+                                end
+
+                        else Player has 0 tokens
+                            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+                        break
+                        end
+
+
+                        end
+                    end
+
+                else No player response
+                    Server -> ExecutiveLogic: timeout()
+                    ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+                    break
+                    end
+                end
+            end
+        
+        
+        else  Free Spin
+                ExecutiveLogic -> ScoreKeepr: updateToken(playerID)
+
+        else Spin again
+            ExecutiveLogic -> Wheel: getSpinResult()
+        else Bankrupt
+            ExecutiveLogic -> ScoreKeepr: bankrupt(playerID)
+            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+        else Lose Turn
+            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+        end
+
+    end
+
+    == END GAME ==
+
+    ExecutiveLogic -> ScoreKeeper: getWinner()
+
+    Client1 <- Server: send("GAMEOVER", playerID)
+    Client2 <- Server: send("GAMEOVER", playerID)
+
+end
+@enduml
