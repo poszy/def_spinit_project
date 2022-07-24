@@ -1,6 +1,20 @@
 @startuml Respond to Wheel Spin
-participant Client1 #lightblue
-participant Client2 #lightblue
+title Respond to Wheel Spin
+
+skinparam sequenceReferenceBackgroundColor palegreen
+skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
+
+participant Client1 #Plum
+participant Client2 #Plum
+
+box "Game Server" #LightBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+participant GameBoard
+participant ScoreKeeper
+participant Wheel
+
+end box
 
 Server <- ExecutiveLogic: notifySpinResult(playerID, spinResult, spinsRemain)
 Client1 <- Server: send("spinDisplay", spinResult, spinsRemain)
@@ -28,26 +42,9 @@ alt Player's or Opponent's Choice
             else Incorrect answer
                 ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
                 alt Player has 1+ has token
-                    group Prompt Player to use token
-                        Server <- ExecutiveLogic: askUseToken(playerID)
-
-                        Client1 <- Server: send(playerID, "useToken?")
-
-                        alt Player responds YES
-
-                            Client1 -> Server: send("useToken")
-                            Server -> ExecutiveLogic: useToken()
-                            ExecutiveLogic -> ScoreKeeper: useToken()
-                        else Player responds NO
-                            Client1 -> Server: send("NOTuseToken")
-                            Server -> ExecutiveLogic: NOTuseToken()
-                            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
-                        else No player response
-                            Server -> ExecutiveLogic: timeout()
-                            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
-
-                        end
-                    end
+                    ref over Client1, ExecutiveLogic #PaleGreen
+                      Prompt Player to use token 
+                    end ref
                 else Player has 0 tokens
                     ExecutiveLogic -> ExecutiveLogic: nextPlayer()
                 break

@@ -1,0 +1,25 @@
+@startuml Prompt Player to use token
+title Prompt Player to use token
+
+participant Client1 #lightblue
+participant Client2 #lightblue
+
+    Server <- ExecutiveLogic: askUseToken(playerID)
+
+    Client1 <- Server: send(playerID, "useToken?")
+
+    alt Player responds YES
+        Client1 -> Server: send("useToken")
+        Server -> ExecutiveLogic: useToken()
+        ExecutiveLogic -> ScoreKeeper: useToken()
+    else Player responds NO
+        Client1 -> Server: send("NOTuseToken")
+        Server -> ExecutiveLogic: NOTuseToken()
+        ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+    else No player response
+        Server -> ExecutiveLogic: timeout()
+        ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+
+                        
+    end
+@enduml

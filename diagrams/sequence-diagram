@@ -1,7 +1,18 @@
 @startuml Players Play a WoJ Game
+title Players Play a WoJ Game
+skinparam sequenceReferenceBackgroundColor palegreen
+skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 
-participant Client1 #lightblue
-participant Client2 #lightblue
+participant Client1 #Plum
+participant Client2 #Plum
+
+box "Game Server" #LightBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+participant GameBoard
+participant ScoreKeeper
+participant Wheel
+
 Client1 -> Server: connect(svrIP, svrPort)
 Client1 <- Server: send("PlayerID", ID)
 Client2 -> Server: connect(svrIP, svrPort)
