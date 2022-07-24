@@ -1,0 +1,125 @@
+@startuml Wheel of Jeopardy
+
+ class ExecutiveLogic {
+    turnOrder : [playerID]
+    currRound : int
+    wheelSpins : int
+    maxWheelSpins : int
+
+    runGame()
+    executeRound(round)
+    executeTurn(playerID)
+    executeCategory(category)
+    getRound(): currRound
+    whoseTurn()
+    updateTurn(): playerID
+    selectRandomOpponent(playerID, players) : playerID
+    endGame()
+    timeout()
+    notifyMsg(command, args)
+ }
+
+
+ class ScoreKeeper {
+    playerScores : {playerID: int}
+    playerTokens : {playerID: int}
+
+    updateScore(playerID, answeredCorrect, points, currRound): playerScores
+    getScores(): [playerScores, playerTokens]
+    hasToken(playerID) : boolean
+    addToken(playerID): playerTokens
+    useToken(playerID): playerTokens
+    bankrupt(playerID): playerScores
+    getWinner() : playerID
+
+ }
+  class GameBoard {
+    rounds: {int: [Category]}
+
+    getTile(round, category): Tile
+    getAvailableCategories(round): [String]
+ }
+
+ class Tile {
+    myRound : int
+    myCategory: string 
+    myQuestion: string
+    myAnswers: array
+    myRightAnswer: int
+    myPoints: int
+    wasAnswered: bool
+
+    checkAnswer(user_ans:String) : [boolean, myPoints]
+ }
+  
+
+ class Wheel {
+    sectors: [String]
+
+    getSpinResult() : String
+    updateCategories([String])
+ }
+
+
+  class UI {
+    userName : string
+    scores: {playerID: int}
+    tokens: {playerID: int}
+
+
+    refreshScore(wheelSpinsLeft, scores, tokens)
+    answerQ()
+    selectCategory()
+    useToken()
+    countdown()
+ }
+
+ class Button
+ class TextDisplay
+
+  class Messenger {
+    sendMsg(receiver, msg)
+ }
+
+  class Server {
+    gameID : int
+    players : [playerID]
+
+ }
+
+  class Client {
+  playerID : int
+  ConnectToHost(serverIP, svrPort)
+ }
+
+ class GameBoard {
+
+   getTile(round, category) : Tile
+   getAvailableCategories(round) : [String]
+ }
+
+  class Message {
+   command: String
+   data: []
+ }
+
+Messenger <|-- Server
+Messenger <|-- Client
+
+Client *--- UI /' composition '/
+
+Client o--- "*" Message /' aggregation '/
+Server o--- "*" Message /' aggregation '/
+
+ExecutiveLogic *--- Wheel
+ExecutiveLogic *--- ScoreKeeper
+ExecutiveLogic *--- GameBoard
+ExecutiveLogic *--- Server
+
+Button "*" ---o UI /' aggregation '/
+TextDisplay "*" ---o UI /' aggregation '/
+
+GameBoard *--- "*" Tile /' composition '/
+
+
+@enduml
