@@ -7,6 +7,7 @@ from server import GameServer
 
 MAX_SPINS = 50
 
+
 class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
         self.board = Board()
@@ -20,10 +21,10 @@ class ExecutiveLogic:
     def __execute_category(self, jeopardy_category):
         """
         Controls the flow of a Jeopardy question. Called when a "category" sector is the result of a wheel spin.
-        :param jeopardy_category:
-        :return:
+        :param jeopardy_category: Name of jeopardy category
+        :return: void
         """
-        pass  # TODO
+        
 
     def __execute_turn(self, curr_player_id):
         """
@@ -33,12 +34,12 @@ class ExecutiveLogic:
         """
         if self.num_spins >= MAX_SPINS:
             return
-        wheel_result = self.__spin_wheel()                  # Spin wheel
+        wheel_result = self.__spin_wheel()  # Spin wheel
         self.game_server.notify_spin_result(curr_player_id, wheel_result)
 
-        if self.wheel.is_jeopardy_category(wheel_result):   # If result is a Jeopardy category, call execute_category
+        if self.wheel.is_jeopardy_category(wheel_result):  # If result is a Jeopardy category, call execute_category
             self.__execute_category(wheel_result)
-        elif wheel_result == "lose_turn":                   # If result is another wheel sector, handle logic
+        elif wheel_result == "lose_turn":  # If result is another wheel sector, handle logic
             # TODO: Rewrite to prompt player to use token. Currently just uses a token if it's available.
             if self.score_keeper.use_token(curr_player_id)[0]:  # Use token if available
                 self.__execute_turn(curr_player_id)  # Spin again
@@ -67,9 +68,10 @@ class ExecutiveLogic:
         """
         curr_player_id = None
 
-        while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num): # End round when spins >= 50 or no available questions
+        while self.num_spins < MAX_SPINS and self.board.get_available_categories(
+                round_num):  # End round when spins >= 50 or no available questions
             self.__next_player(curr_player_id)
-            #self.game_server.notify_player(curr_player_id) # TODO: Notify player that it's their turn, ask them to push a button to spin the wheel, and wait for their response.
+            # self.game_server.notify_player(curr_player_id) # TODO: Notify player that it's their turn, ask them to push a button to spin the wheel, and wait for their response.
             self.__execute_turn(curr_player_id)
 
         pass
@@ -108,7 +110,8 @@ class ExecutiveLogic:
         self.num_spins += 1
         return self.num_spins
 
-    def whose_turn(self, curr_player_id): # TODO: This method may require changing curr_player_id to a class variable, or passing the information down from Executive Logic to the class that needs it. Revisit later.
+    def whose_turn(self,
+                   curr_player_id):  # TODO: This method may require changing curr_player_id to a class variable, or passing the information down from Executive Logic to the class that needs it. Revisit later.
         """
         Returns name of the player who is currently taking their turn, or None if no one is currently taking a turn.
         :return: (string) Player name
@@ -124,6 +127,3 @@ class ExecutiveLogic:
 
     def select_rand_opponent(self):
         return "Opponent"
-
-
-

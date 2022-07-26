@@ -20,7 +20,6 @@ class Board:
             Returns:
             a key-value pair containing a question from the board.
          """
-        # TODO: incorporate the ROUND
 
         #logging.info(f"BOARD:(get_question) -- Checking is_available({category})")
         is_available = self.is_category_available(category, round)
@@ -47,7 +46,7 @@ class Board:
 
 
         #print(f"BOARD:(is_category_available) -- checking if category {category} is available ")
-        available = self.questions.is_category_open(category)
+        available = self.questions.is_category_open(category, round)
 
         return available
 
@@ -60,7 +59,6 @@ class Board:
         Returns:
         a boolean.
         """
-        # TODO: incorporate the ROUND
 
         #print(f"BOARD:(is_category_available) -- returning available categories for round {round} ")
         available = self.questions.get_open_categories(round)
