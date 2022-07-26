@@ -22,15 +22,16 @@ class Board:
          """
         # TODO: incorporate the ROUND
 
-        logging.info(f"BOARD:(get_question) -- Checking is_available({category})")
+        #logging.info(f"BOARD:(get_question) -- Checking is_available({category})")
         is_available = self.is_category_available(category, round)
 
         if is_available:
-            logging.info("BOARD:(get_question) -- Returning Question from Questions")
+            #logging.info("BOARD:(get_question) -- Returning Question from Questions")
             return self.questions.get_tile(category, round)
         else:
-            logging.info("BOARD:(get_question) -- Category is not available")
-            logging.info("BOARD:(get_question) -- Please Spin again")
+            #logging.info("BOARD:(get_question) -- Category is not available")
+            #logging.info("BOARD:(get_question) -- Please Spin again")
+            pass
 
     def is_category_available(self, category, round):
         """
@@ -45,7 +46,7 @@ class Board:
         # TODO: incorporate the ROUND
 
 
-        print(f"BOARD:(is_category_available) -- checking if category {category} is available ")
+        #print(f"BOARD:(is_category_available) -- checking if category {category} is available ")
         available = self.questions.is_category_open(category)
 
         return available
@@ -61,7 +62,17 @@ class Board:
         """
         # TODO: incorporate the ROUND
 
-        print(f"BOARD:(is_category_available) -- returning available categories for round {round} ")
+        #print(f"BOARD:(is_category_available) -- returning available categories for round {round} ")
         available = self.questions.get_open_categories(round)
 
         return available
+
+    def reset_board(self, new_round_num):
+        """
+        Called at the start of a new round. Changes Jeopardy game board to a new set of questions and answers, with new point totals.
+        May throw an error if no new board is available?
+
+        :param new_round_num: The number of the new round (1 or 2). Used to calculate how many points each question is worth.
+        :return: void
+        """
+        pass

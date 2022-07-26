@@ -22,7 +22,7 @@ class Questions:
 
     def is_category_open(self, category):
 
-        print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
+        #print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
 
         category_open = False
         if category == "politics":
@@ -32,7 +32,7 @@ class Questions:
         if category == "food":
             category_open = len(self.food) > 0
 
-        print(f"QUESTIONS:(check_question) -- Category: {category} is available: {category_open}")
+        #print(f"QUESTIONS:(check_question) -- Category: {category} is available: {category_open}")
 
         return category_open
 
@@ -50,39 +50,39 @@ class Questions:
         # TODO: implement code to work with round
 
         if category == "politics":
-            print("QUESTIONS:(get_tile) -- current iterator value " + str(self.politics_iterator))
+            #print("QUESTIONS:(get_tile) -- current iterator value " + str(self.politics_iterator))
             # Get Question that's next in line
-            print("QUESTIONS:(get_tile) -- got question ")
+            #print("QUESTIONS:(get_tile) -- got question ")
             question = self.politics[self.politics_iterator]
 
-            print("QUESTIONS:(get_tile) -- removed question from category ")
+            #print("QUESTIONS:(get_tile) -- removed question from category ")
             # Delete the question from Dictionary
             del self.politics[self.politics_iterator]
 
             # Dictionary indexes do not update. so we have to track the indexes
             # With a global variable
-            print("QUESTIONS:(get_tile) -- incrementing iterator ")
+            #print("QUESTIONS:(get_tile) -- incrementing iterator ")
             self.politics_iterator = self.politics_iterator + 1
 
-            print("QUESTIONS:(get_tile) -------------------------------------- ")
+            #print("QUESTIONS:(get_tile) -------------------------------------- ")
             return question
 
         if category == "food":
-            print("QUESTIONS:(get_tile) -- current iterator value " + str(self.food_iterator))
+            #print("QUESTIONS:(get_tile) -- current iterator value " + str(self.food_iterator))
             # Get Question that's next in line
-            print("QUESTIONS:(get_tile) -- got question ")
+            #print("QUESTIONS:(get_tile) -- got question ")
             question = self.food[self.food_iterator]
 
-            print("QUESTIONS:(get_tile) -- removed question from category ")
+            #print("QUESTIONS:(get_tile) -- removed question from category ")
             # Delete the question from Dictionary
             del self.food[self.food_iterator]
 
             # Dictionary indexes do not update. so we have to track the indexes
             # With a global variable
-            print("QUESTIONS:(get_tile) -- incrementing iterator ")
+            #print("QUESTIONS:(get_tile) -- incrementing iterator ")
             self.food_iterator = self.food_iterator + 1
 
-            print("QUESTIONS:(get_tile) -------------------------------------- ")
+            #print("QUESTIONS:(get_tile) -------------------------------------- ")
             return question
 
 # a = Questions()

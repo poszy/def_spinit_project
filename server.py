@@ -71,9 +71,11 @@ class Messenger():
 class GameServer(Messenger):
 
 	# default constructor
-	def __init__(self, srv_ip, srv_port):
+	def __init__(self, srv_ip, srv_port, executive_logic):
+		super().__init__(srv_ip, srv_port)
 		self.host_ip = srv_ip
 		self.port = srv_port
+		self.executive_logic = executive_logic
 
 		self.player_id = 1
 		self.whose_turn = 1  # pointer to current player taking turn
@@ -81,14 +83,6 @@ class GameServer(Messenger):
 
 		self.new_player_id = 1
 		self.players = []  # keep track of players
-
-
-		# SETUP SUBSYSTEMS
-		self.board = Board()
-		self.executive_logic = ExecutiveLogic()
-		self.score_keeper = ScoreKeeper()
-		self.wheel = Wheel()
-		self.ui = UserInterface()
 
 		self.num_spins = 0  # TODO: this should really be held by the ExecutiveLogic
 
@@ -207,5 +201,11 @@ class GameServer(Messenger):
 	def spin_again(self):
 		pass
 
-	def notify_spin(self):
+	def notify_spin_result(self, curr_player_id, wheel_result):
+		"""
+		Notifies client of a wheel spin result, so that it can display in the UI.
+		:param curr_player_id: Player that spun the wheel.
+		:param wheel_result: Result of the spin.
+		:return: void
+		"""
 		pass

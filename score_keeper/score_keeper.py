@@ -72,7 +72,7 @@ class ScoreKeeper:
         return user_correct, updated_points
 
     # interface
-    def has_token(self, player_id):
+    def __has_token(self, player_id):
         """
         Checks to see if player has any tokens
 
@@ -100,7 +100,7 @@ class ScoreKeeper:
             playerTokens: a dict containing playerIDs mapped to their current token count
         """
         success = False
-        if self.has_token(player_id):
+        if self.__has_token(player_id):
             # only remove token if player has at least one
             self.playerTokens[player_id] -= 1
             success = True
@@ -141,3 +141,11 @@ class ScoreKeeper:
             if pts == max_points:
                 winners.append(playerID)
         return winners
+
+    def add_token(self, player_id):
+        """
+        Gives a player a token.
+        :param player_id: 
+        :return: 
+        """""
+        self.playerTokens[player_id] += 1

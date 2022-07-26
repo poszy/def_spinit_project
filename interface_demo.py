@@ -11,6 +11,7 @@ class InterfaceDemo(GameServer):
         self.__demo_wheel()
         self.__demo_user_interface()
         self.__demo_executive_logic()
+        logging.info("\n")
 
     def __demo_score_keeper(self):
         logging.info("\n\nPinging Scorekeeper Interfaces")
