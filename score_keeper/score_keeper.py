@@ -53,25 +53,6 @@ class ScoreKeeper:
         return self.playerTokens
 
     # interface
-    def check_answer(self, user_answer, actual_answer, points, player_id):
-        """
-            Gets the next question in point value from the board.
-
-            Args:
-            userAnswer: A string containing user's answer selection.
-            actualAnswer: A string containing actual answer.
-            points: Integer number of points that question was worth
-            player_id: the player who answered
-
-            Returns:
-            user_correct: a boolean representing whether or not the user's selection was correct
-        """
-        user_correct = (user_answer == actual_answer)
-
-        updated_points = self.tally_points(user_correct, points, player_id)
-        return user_correct, updated_points
-
-    # interface
     def has_token(self, player_id):
         """
         Checks to see if player has any tokens

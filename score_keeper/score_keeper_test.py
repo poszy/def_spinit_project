@@ -6,12 +6,6 @@ class MyTestCase(unittest.TestCase):
 	# def __init__(self):
 	# 	self.scorekeeper = ScoreKeeper()
 
-	def test_check_answer(self):
-		self.scorekeeper = ScoreKeeper()
-
-		user_correct, updated_points = self.scorekeeper.check_answer("ansA", "ansB", 100, 0)
-		self.assertFalse(user_correct)
-		self.assertEqual(updated_points, {0: -100})
 
 	def test_tally_points(self):
 		self.scorekeeper = ScoreKeeper()
