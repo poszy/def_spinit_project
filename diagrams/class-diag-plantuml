@@ -81,9 +81,16 @@
     sendMsg(receiver, msg)
  }
 
-  class Server {
+  class MsgServer {
     gameID : int
-    players : [playerID]
+    execLogic: ExecutiveLogic
+    clientList: set(Client)
+    players : set(playerID)
+
+ }
+
+   class GameServer {
+
 
  }
 
@@ -103,18 +110,23 @@
    data: []
  }
 
-Messenger <|-- Server
+Messenger <|-- MsgServer
 Messenger <|-- Client
 
 Client *--- UI /' composition '/
 
 Client o--- "*" Message /' aggregation '/
-Server o--- "*" Message /' aggregation '/
+MsgServer o--- "*" Message /' aggregation '/
 
-ExecutiveLogic *--- Wheel
-ExecutiveLogic *--- ScoreKeeper
-ExecutiveLogic *--- GameBoard
-ExecutiveLogic *--- Server
+Client ---> "*" MsgServer /' aggregation '/
+
+
+ExecutiveLogic *---> Wheel
+ExecutiveLogic *---> ScoreKeeper
+ExecutiveLogic *---> GameBoard
+ExecutiveLogic ---* GameServer
+MsgServer ---* GameServer
+
 
 Button "*" ---o UI /' aggregation '/
 TextDisplay "*" ---o UI /' aggregation '/
