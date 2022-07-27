@@ -22,7 +22,9 @@ Client2 -> Server: send("PlayerID", ID)
 Server -> ExecutiveLogic : startGame([playerID])
 loop#Gold 2 times
     ExecutiveLogic -> ExecutiveLogic: incrementRound()
-
+    ExecutiveLogic -> GameBoard : getAvailableCategories(round)
+    ExecutiveLogic <-- GameBoard : [available]
+    ExecutiveLogic -> Wheel : updateCategories([available])
     == START ROUND ==
     loop#Gold number of spins < 50 and board is not empty
         == START TURN ==
@@ -33,18 +35,16 @@ loop#Gold 2 times
 
             alt#MediumTurquoise Player responds
 
-                Client1 -> Server: send("Spin Wheel")
-                Server -> ExecutiveLogic: spinRequest()
+                Client1 --> Server: send("Spin Wheel")
+                Server --> ExecutiveLogic: spinRequest()
 
             else No player response
-                Server -> ExecutiveLogic: timeout()
+                Server --> ExecutiveLogic: timeout()
                 ExecutiveLogic -> ExecutiveLogic: nextPlayer()
 
             end
         end
 
-        ExecutiveLogic -> GameBoard : getAvailableCategories()
-        ExecutiveLogic -> Wheel : updateCategories()
         ExecutiveLogic -> Wheel : getSpinResult()
         ExecutiveLogic <-- Wheel : sector
 

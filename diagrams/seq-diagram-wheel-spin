@@ -22,9 +22,19 @@ ref#Magenta over Client1, ExecutiveLogic
         Send Updated Scoreboard to Clients
 end ref
 
-alt#MediumTurquoise Player's or Opponent's Choice
-    Server <- ExecutiveLogic: selectCategory(playerID, categories)
-    Client1 <- Server: send("selectCategory", [categories])
+ExecutiveLogic -> GameBoard : getAvailableCategories(round)
+ExecutiveLogic <-- GameBoard : [availableCategory]
+
+alt#MediumTurquoise "Player's Choice" or "Opponent's Choice"
+    Server <- ExecutiveLogic: selectCategory(playerID, availableCategory)
+    note right
+    Executive Logic selects the 
+    appropriate player to choose
+    the category from list of
+     available categories
+    end note
+    
+    Client1 <- Server: send("selectCategory", [availableCategory])
     Client1 --> Server: send("Category", category)
     Server --> ExecutiveLogic: selectedCategory(category)
 
@@ -34,31 +44,31 @@ alt#MediumTurquoise Player's or Opponent's Choice
         end ref
     end
 
-else Category
+else Sector result is an available category
     loop#Gold until category is empty
         ref over Client1, ScoreKeeper
             Player Answers Question
         end ref
     end
 
-
-else  Free Spin
-    ExecutiveLogic -> ScoreKeeper: addToken(playerID)
-    ExecutiveLogic <-- ScoreKeeper: tokens
-    ref#Magenta over Client1, ExecutiveLogic
-        Send Updated Scoreboard to Clients
-    end ref
-
-else Spin again
+else Sector result category is NOT available or is "Spin again"
     ExecutiveLogic -> Wheel: getSpinResult()
     ExecutiveLogic <-- Wheel : sector
 
     ref#Cyan over Client1, ExecutiveLogic
             Send Spin Result to Clients
     end ref
-    ExecutiveLogic <-- Wheel: category
 
-else Bankrupt
+else "Free Spin"
+    ExecutiveLogic -> ScoreKeeper: addToken(playerID)
+    ExecutiveLogic <-- ScoreKeeper: tokens
+    ref#Magenta over Client1, ExecutiveLogic
+        Send Updated Scoreboard to Clients
+    end ref
+
+
+
+else "Bankrupt"
     ExecutiveLogic -> ScoreKeeper: bankrupt(playerID)
     ExecutiveLogic <-- ScoreKeeper: scores
 

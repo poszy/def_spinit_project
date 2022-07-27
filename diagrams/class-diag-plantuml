@@ -58,6 +58,7 @@
 
     getSpinResult() : String
     updateCategories([String])
+    is_jeopardy_category(String): boolean
  }
 
 
