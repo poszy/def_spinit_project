@@ -18,15 +18,20 @@ class ExecutiveLogic:
 
         self.num_spins = 0
 
-    def __execute_category(self, jeopardy_category):
+    def __execute_category(self, jeopardy_category, player_id, round_num):
         """
         Controls the flow of a Jeopardy question. Called when a "category" sector is the result of a wheel spin.
         :param jeopardy_category: Name of jeopardy category
         :return: void
         """
-        
+        tile = self.board.get_tile(jeopardy_category, round_num)
+        # TODO: Display tile.question and tile.answers to user, wait for response
+        user_answer = "Placeholder for the user's answer" # TODO: See line above
+        is_correct, points = tile.check_answer(user_answer)
+        self.score_keeper.update_score(player_id, is_correct, points)
+        # TODO: Display updated point totals to UI
 
-    def __execute_turn(self, curr_player_id):
+    def __execute_turn(self, curr_player_id, round_num):
         """
         Controls the flow of one turn. Called at the start of the turn.
         :param curr_player_id: ID of player whose turn is starting
@@ -38,16 +43,16 @@ class ExecutiveLogic:
         self.game_server.notify_spin_result(curr_player_id, wheel_result)
 
         if self.wheel.is_jeopardy_category(wheel_result):  # If result is a Jeopardy category, call execute_category
-            self.__execute_category(wheel_result)
+            self.__execute_category(wheel_result, curr_player_id, round_num)
         elif wheel_result == "lose_turn":  # If result is another wheel sector, handle logic
             # TODO: Rewrite to prompt player to use token. Currently just uses a token if it's available.
             if self.score_keeper.use_token(curr_player_id)[0]:  # Use token if available
-                self.__execute_turn(curr_player_id)  # Spin again
+                self.__execute_turn(curr_player_id, round_num)  # Spin again
             else:  # Otherwise, end player turn
                 return
         elif wheel_result == "free_turn":  # TODO: These strings should be part of an enum that's shared with Wheel
             self.score_keeper.add_token(curr_player_id)
-            self.__execute_turn(curr_player_id)  # Spin again
+            self.__execute_turn(curr_player_id, round_num)  # Spin again
         elif wheel_result == "bankrupt":
             self.score_keeper.bankrupt(curr_player_id)
             return  # End player turn
@@ -56,7 +61,7 @@ class ExecutiveLogic:
         elif wheel_result == "opponents_choice":
             pass  # TODO
         elif wheel_result == "spin_again":
-            self.__execute_turn(curr_player_id)
+            self.__execute_turn(curr_player_id, round_num)
         else:
             raise Exception("Wheel result '" + wheel_result + "' is not a valid wheel category!")
 
@@ -72,7 +77,7 @@ class ExecutiveLogic:
                 round_num):  # End round when spins >= 50 or no available questions
             self.__next_player(curr_player_id)
             # self.game_server.notify_player(curr_player_id) # TODO: Notify player that it's their turn, ask them to push a button to spin the wheel, and wait for their response.
-            self.__execute_turn(curr_player_id)
+            self.__execute_turn(curr_player_id, round_num)
 
         pass
 
@@ -88,7 +93,8 @@ class ExecutiveLogic:
         self.__end_game()
 
     def __end_game(self):
-        pass
+        winner_id = self.score_keeper.determine_winner()
+        # TODO: Tell server who won, display info, end game
 
     def __next_player(self, curr_player_id):
         """
