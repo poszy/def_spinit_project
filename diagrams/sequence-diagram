@@ -46,10 +46,11 @@ loop#Gold 2 times
         ExecutiveLogic -> GameBoard : getAvailableCategories()
         ExecutiveLogic -> Wheel : updateCategories()
         ExecutiveLogic -> Wheel : getSpinResult()
-        ExecutiveLogic -> ExecutiveLogic : incrementSpinCounter()
+        ExecutiveLogic <-- Wheel : sector
 
-        Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
-
+        ref#Cyan over Client1, ExecutiveLogic
+            Send Spin Result to Clients
+        end ref
 
         ref over Client1, ScoreKeeper
             Respond to Wheel Spin

@@ -1,0 +1,20 @@
+@startuml Send Spin Result to Clients
+title Send Spin Result to Clients
+
+participant Client1 #Plum
+participant Client2 #Plum
+
+box "Game Server" #LightSteelBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+end box
+
+    group#Cyan Send Spin Result to Clients
+        ExecutiveLogic -> ExecutiveLogic : incrementSpinCounter()
+
+        Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
+        Client1 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
+        Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
+    end
+
+@enduml
