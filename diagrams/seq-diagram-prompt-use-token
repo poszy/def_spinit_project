@@ -15,15 +15,15 @@ end box
     Client1 <- Server: send(playerID, "useToken?")
 
     alt#MediumTurquoise Player responds YES
-        Client1 -> Server: send("useToken")
-        Server -> ExecutiveLogic: useToken()
+        Client1 --> Server: send("YESuseToken")
+        Server --> ExecutiveLogic: YESuseToken()
         ExecutiveLogic -> ScoreKeeper: useToken()
     else Player responds NO
-        Client1 -> Server: send("NOTuseToken")
-        Server -> ExecutiveLogic: NOTuseToken()
+        Client1 --> Server: send("NOTuseToken")
+        Server --> ExecutiveLogic: NOTuseToken()
         ExecutiveLogic -> ExecutiveLogic: nextPlayer()
     else No player response
-        Server -> ExecutiveLogic: timeout()
+        Server --> ExecutiveLogic: timeout()
         ExecutiveLogic -> ExecutiveLogic: nextPlayer()
 
                         

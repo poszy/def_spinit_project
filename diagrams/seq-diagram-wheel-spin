@@ -16,14 +16,14 @@ participant Wheel
 end box
 
 Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
-Client1 <- Server: send("spinDisplay", spinResult, spinsRemain)
+Client1 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 
 alt#MediumTurquoise Player's or Opponent's Choice
     Server <- ExecutiveLogic: selectCategory(playerID, categories)
     Client1 <- Server: send("selectCategory", [categories])
-    Client1 -> Server: send("Category", category)
-    Server -> ExecutiveLogic: selectedCategory(category)
+    Client1 --> Server: send("Category", category)
+    Server --> ExecutiveLogic: selectedCategory(category)
 
     loop#Gold until category is empty
             ref over Client1, ScoreKeeper
@@ -39,15 +39,25 @@ else Category
     end
 
 
-
-
 else  Free Spin
     ExecutiveLogic -> ScoreKeeper: addToken(playerID)
+    ExecutiveLogic <-- ScoreKeeper: tokens
+    ref#Magenta over Client1, ExecutiveLogic
+        Send Updated Scoreboard to Clients
+    end ref
 
 else Spin again
     ExecutiveLogic -> Wheel: getSpinResult()
+    ExecutiveLogic <-- Wheel: category
+
 else Bankrupt
     ExecutiveLogic -> ScoreKeeper: bankrupt(playerID)
+    ExecutiveLogic <- ScoreKeeper: scores
+
+    ref#Magenta over Client1, ExecutiveLogic
+        Send Updated Scoreboard to Clients
+    end ref
+
     ExecutiveLogic -> ExecutiveLogic: nextPlayer()
 else Lose Turn
     ExecutiveLogic -> ExecutiveLogic: nextPlayer()

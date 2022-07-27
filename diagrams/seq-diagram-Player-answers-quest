@@ -16,23 +16,35 @@ end box
 
 
 ExecutiveLogic -> GameBoard: getTile(round, category)
+ExecutiveLogic <-- GameBoard: Tile
+
 Server <- ExecutiveLogic: askQuestion(question, [ansChoice])
 
 Client1 <- Server: send("Question", question, [ansChoice])
 
     alt#MediumTurquoise Player responds
 
-        Client1 -> Server: send("AnswerChoice", playerAns)
-        Server <-> ExecutiveLogic: playerAns(plyerAns)
+        Client1 --> Server: send("AnswerChoice", playerAns)
+        Server --> ExecutiveLogic: playerAns(plyerAns)
 
 
         ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
+        ExecutiveLogic <-- GameBoard : playerCorrect: boolean
         ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
+        ExecutiveLogic <-- ScoreKeeper: scores
         
+        ref#Magenta over Client1, ExecutiveLogic
+            Send Updated Scoreboard to Clients
+        end ref
+
         alt#MediumTurquoise Player answers correctly
             ExecutiveLogic -> GameBoard: isCategoryAvailable(category)
+            ExecutiveLogic <-- GameBoard: boolean
+
         else Player answers incorrectly
             ExecutiveLogic -> ScoreKeeper : hasToken(playerID)
+            ExecutiveLogic  <-- ScoreKeeper : boolean
+
             alt#MediumTurquoise Player has 1+ has token
                 ref over Client1, ExecutiveLogic #PaleGreen
                     Prompt Player to use token 
@@ -47,7 +59,7 @@ Client1 <- Server: send("Question", question, [ansChoice])
         end
 
     else No player response
-        Server -> ExecutiveLogic: timeout()
+        Server --> ExecutiveLogic: timeout()
         ExecutiveLogic -> ExecutiveLogic: nextPlayer()
         break
         end
