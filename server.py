@@ -118,6 +118,10 @@ class GameServer(Messenger):
 		self.players = []  # keep track of players
 
 	def host_game(self):
+		"""
+		Game setup. Called by main.py.
+		:return: void
+		"""
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
 		server.bind((self.host_ip, self.port))
 		logging.info("server starting a game, listening for players on port: " + str(self.port))
@@ -136,20 +140,14 @@ class GameServer(Messenger):
 		threading.Thread(target=self.handle_connection, args=(client,)).start()  # start threading immediately
 		server.close()  # handle one game
 
-	def handle_connection(self, client): # TODO: rename to handle_connection, delete listen_for_exec
-		# check for round over?
-		# self.ExecutiveLogic
-
-		turn_message = ""
-
+	def handle_connection(self, client):
+		"""
+		Handle incoming requests from ExecLogic and Client.
+		Runs in a separate thread for the duration of the game.
+		:param client: Instance of Client
+		:return: void
+		"""
 		logging.info("Handling client connections...")
-
-		# if self.whose_turn == self.player_id:  # it's my turn
-		# 	# player takes a turn
-		#
-		# 	# spin wheel
-		#
-		# 	turn_message = "turn over"
 
 		while self.executive_logic.is_game_running:  # Loop while game is running
 			if self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
