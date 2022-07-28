@@ -1,10 +1,10 @@
-from board.board import Board
-from executive_logic.executive_logic import ExecutiveLogic
-from score_keeper.score_keeper import ScoreKeeper
-from ui.user_interface import UserInterface
-from wheel.wheel import Wheel
+from executive_logic.executive_logic import QueryStatus
 import logging
 import pickle
+import time
+from enum import Enum
+import socket
+import threading
 
 logging.basicConfig(level=logging.INFO)
 HEADER_SIZE = 10
@@ -13,21 +13,54 @@ HEADER_SIZE = 10
 
 # pickling and buffering : https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
 
-import socket
-import threading
-
 NUM_PLAYERS = 3
 MAX_SPINS = 3
 BYTE_ENCODING = 'utf-8'
 
 
+class MessageType(Enum):
+	"""
+	Enum of all message types that may be sent between executive <-> server <-> client.
+	Part of the Message class. Always accompanied by a list of arguments, which is different based on the message type.
+
+	Each message type will be sent by the Executive (requesting information), with some arguments.
+	A message of the same type will then be sent by the Client (responding), with different arguments.
+	"""
+	EMPTY = 0					# No message.
+									# Request  Args: 	[]
+									# Response Args:	[]
+
+	JEOPARDY_QUESTION = 1		# Called to ask server to ask client to answer a Jeopardy question.
+									# Request  Args: 	[player_id, Wheel.tile]
+									# Response Args:	[user_answer]
+
+	PLAYERS_CHOICE = 2			# Called to ask server to ask client to ask a player to input a Jeopardy category.
+									# Request  Args: 	[player_id, round_num]
+									# Response Args:	[chosen_category]
+
+	OPPONENTS_CHOICE = 3		# Called to ask server to ask client to ask a player to input a Jeopardy category.
+									# Request  Args: 	[player_id, round_num]
+									# Response Args:	[chosen_category]
+
+	SPIN = 4					# Called to ask server to ask client to notify player it's their turn, and ask that player to spin the wheel.
+									# Request  Args: 	[player_id]
+									# Response Args:	[]
+
+	END_GAME = 5				# Called to tell server that the game has ended.
+									# Request  Args:	[winner_player_id]
+									# Response Args:	[]
+
+	UPDATE_SCORES = 6			# Called to tell server updated game values, to display to client.
+									# Request  Args: 	[scores_dict, tokens_dict, num_spins]
+									# Response Args:	[]
+
 class Message:
-	def __init__(self, code, args):
+	def __init__(self, code: MessageType, args: list):
 		self.code = code
 		self.args = args
 
 
-class Messenger():
+class Messenger:
 	def __init__(self, srv_ip, srv_port):
 		self.host_ip = srv_ip
 		self.port = srv_port
@@ -84,8 +117,6 @@ class GameServer(Messenger):
 		self.new_player_id = 1
 		self.players = []  # keep track of players
 
-		self.num_spins = 0  # TODO: this should really be held by the ExecutiveLogic
-
 	def host_game(self):
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
 		server.bind((self.host_ip, self.port))
@@ -105,13 +136,13 @@ class GameServer(Messenger):
 		threading.Thread(target=self.handle_connection, args=(client,)).start()  # start threading immediately
 		server.close()  # handle one game
 
-	def handle_connection(self, client):
+	def handle_connection(self, client): # TODO: rename to handle_connection, delete listen_for_exec
 		# check for round over?
 		# self.ExecutiveLogic
 
 		turn_message = ""
 
-		logging.info("Handling connections...")
+		logging.info("Handling client connections...")
 
 		# if self.whose_turn == self.player_id:  # it's my turn
 		# 	# player takes a turn
@@ -120,51 +151,24 @@ class GameServer(Messenger):
 		#
 		# 	turn_message = "turn over"
 
-		while self.num_spins <= MAX_SPINS:
-			print("\n\n=====================================================\n\n")
-			parsed_message = self.buffer_message(client)
+		while self.executive_logic.is_game_running:  # Loop while game is running
+			if self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
+				print("\n\n=====================================================\n\n")
+				parsed_message = self.buffer_message(client)  # Wait for client response
+				self.executive_logic.store_query(parsed_message.code, parsed_message.args)  # Store client response in executive logic
+				logging.info("Received message with message type: %s", parsed_message.code)
 
-			request_command = parsed_message.code
-			logging.info("Received message with command code: %s", request_command)
-			# request_args = parsed_message.args
+			elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT:  # Send message to client
+				command = self.executive_logic.server_message  # Get Message from server
+				self.send_command(client, command)  # Send Message to client
 
-			command = Message("None", [])
-			if request_command == "SPIN":
-				logging.info("Server messaging WHEEL to SPIN ")
+			elif self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client
+				time.sleep(0.1)
+				continue
+			else:
+				raise Exception("Unknown query status in server!")
 
-				# send message to Wheel!
-				wheel_result = "String Theory"  # TODO: get spin result from wheel
-				logging.info("Server got spin result from WHEEL:" + wheel_result)
-				# command = Message("SPIN_RESULT", wheel_result)
-				command = Message("SPIN_RESULT", wheel_result)
-				self.num_spins += 1
 
-			elif request_command == "SEE_SCORE":
-				logging.info("Server received SEE SCORE request from user")
-
-				# get current score from the scorekeeper
-				logging.info(
-					"Server getting scores from the scorekeeper")  # TODO get current score from the scorekeeper
-				# scores = self.scorekeeper.getScores()
-				scores = {1: 100, 2: 100, 3: 100, 4: 100}
-
-				command = Message("SCORE", scores)
-				print("SCORES:", scores)
-
-			elif request_command == "SELECT_CATEGORY":
-				selected_category = parsed_message.args
-				logging.info(f"Server received category selection from user { selected_category}")
-
-				# get next question from the board
-				# logging.info("Server getting question from the board from category",
-				#              selected_category)  # TODO get question from board
-
-				next_question = "What is a byte?"
-				command = Message("QUESTION", next_question)
-
-			self.send_command(client, command)
-
-		# send question message to the clients
 
 	# self.game_over = True
 	# # command = parse_request[0]

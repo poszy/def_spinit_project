@@ -36,7 +36,7 @@ class ScoreKeeper:
 
 
             Returns:
-            scores: mappying of playerIDs to scores
+            scores: mapping of playerIDs to scores
         """
         return self.player_points
 

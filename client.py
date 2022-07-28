@@ -1,4 +1,5 @@
-# from ui.user_interface import UserInterface
+from ui.user_interface import UserInterface
+from server import Message, MessageType
 
 import socket
 import threading
@@ -44,17 +45,17 @@ class Client(Messenger):
 			parsed_message = self.buffer_message(client)
 			logging.info("Received message with command code: %s", parsed_message.code)
 
-			if parsed_message.code == "PlayerID":
-				self.player_id = parsed_message.args
+			if parsed_message.code == MessageType.PLAYER_ID:
+				self.player_id = parsed_message.args[0]
 
-			elif parsed_message.code == "SPIN_RESULT":
-				logging.info("Received spin result was: " + parsed_message.args)
-				if parsed_message.code == "SPIN_AGAIN":
-					spin_again = "1"
-					spin_again_command = Message(spin_again, [])
-					client.send_command(spin_again_command)
+			elif parsed_message.code == MessageType.SPIN_RESULT:
+				logging.info("Received spin result was: " + parsed_message.args[0])
 
-			elif parsed_message.code == "SCORE":
+			elif parsed_message.code == MessageType.SPIN_AGAIN:
+				spin_again_command = Message(MessageType.SPIN_AGAIN, [])
+				client.send_command(spin_again_command)
+
+			elif parsed_message.code == MessageType.SEE_SCORE:
 				logging.info("Received current scores: ", parsed_message.args)
 
 				dict_scores = parsed_message.args

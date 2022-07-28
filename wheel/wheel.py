@@ -1,11 +1,22 @@
 import random
+from enum import Enum
+
+
+class Sector(Enum):
+    LOSE_TURN = "Lose Turn"
+    FREE_TURN = "Free Turn"
+    BANKRUPT = "Bankrupt"
+    PLAYERS_CHOICE = "Player's Choice"
+    OPPONENTS_CHOICE = "Opponent's Choice"
+    SPIN_AGAIN = "Spin Again"
 
 
 class Wheel:
 
     def __init__(self, jeopardy_categories):
         self.jeopardy_categories = jeopardy_categories
-        self.other_sectors = ["lose_turn", "free_turn", "bankrupt", "players_choice", "opponents_choice", "spin_again"]
+        self.other_sectors = [Sector.LOSE_TURN, Sector.FREE_TURN, Sector.BANKRUPT, Sector.PLAYERS_CHOICE,
+                              Sector.OPPONENTS_CHOICE, Sector.SPIN_AGAIN]
         self.__update_sector_list()
 
     def get_spin_result(self):
