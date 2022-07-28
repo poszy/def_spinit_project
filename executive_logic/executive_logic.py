@@ -49,6 +49,7 @@ class ExecutiveLogic:
         :param round_num: Number of current round (1 or 2).
         :return: void
         """
+        self.num_spins = 0
         curr_player_id = None
 
         while self.num_spins < MAX_SPINS and self.board.get_available_categories(
@@ -56,8 +57,6 @@ class ExecutiveLogic:
             curr_player_id = self.__next_player(curr_player_id)
             self.__query_server(MessageType.SPIN, [curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
             self.__execute_turn(curr_player_id, round_num)
-
-        pass
 
     def __execute_turn(self, curr_player_id, round_num):
         """
@@ -155,6 +154,7 @@ class ExecutiveLogic:
     def __query_server(self, command: MessageType, args: list):
         """
         Called whenever information must be obtained from the server (e.g. asking the user for something).
+        Stalls until a response is received. Will only accept a response of the type that was requested.
         :param command: (MessageType) The command to be executed, like "JEOPARDY_CATEGORY" or "PLAYERS_CHOICE"
         :param args: (list) Any additional arguments that must be sent to the server
         :return: void
@@ -166,8 +166,6 @@ class ExecutiveLogic:
         while self.query_response.code is not command:  # Wait for a response of the right type from the server
             time.sleep(0.1)
             pass
-
-        self.query_status = QueryStatus.STANDBY  # Reset query status to standby
 
     def store_query(self, command: MessageType, args: list):
         """

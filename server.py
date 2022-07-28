@@ -155,10 +155,12 @@ class GameServer(Messenger):
 				parsed_message = self.buffer_message(client)  # Wait for client response
 				self.executive_logic.store_query(parsed_message.code, parsed_message.args)  # Store client response in executive logic
 				logging.info("Received message with message type: %s", parsed_message.code)
+				self.executive_logic.query_status = QueryStatus.STANDBY  # Reset query status to standby
 
 			elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT:  # Send message to client
 				command = self.executive_logic.server_message  # Get Message from server
 				self.send_command(client, command)  # Send Message to client
+				self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
 
 			elif self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client
 				time.sleep(0.1)
