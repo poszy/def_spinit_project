@@ -65,15 +65,19 @@ class ExecutiveLogic:
         :param curr_player_id: ID of player whose turn is starting
         :return: void
         """
+
+        # Spin wheel
         if self.num_spins >= MAX_SPINS:
             return
-        wheel_result = self.__spin_wheel()  # Spin wheel
-        self.game_server.notify_spin_result(curr_player_id, wheel_result)
+        wheel_result = self.__spin_wheel()
+        self.game_server.notify_spin_result(curr_player_id, wheel_result)  # TODO: This method is unimplemented in server.py. Replace this call with __query_server?
 
-        if self.wheel.is_jeopardy_category(wheel_result):  # If result is a Jeopardy category, call execute_category
+        # If result is a Jeopardy category, call execute_category
+        if self.wheel.is_jeopardy_category(wheel_result):
             self.__execute_category(wheel_result, curr_player_id, round_num)
 
-        elif wheel_result == Sector.LOSE_TURN:  # If result is another wheel sector, handle logic
+        # If result is another wheel sector, handle logic
+        elif wheel_result == Sector.LOSE_TURN:
             # TODO: Rewrite to prompt player to use token. Currently just uses a token if it's available.
             if self.score_keeper.use_token(curr_player_id)[0]:  # Use token if available
                 self.__update_scores_tokens_spins()
@@ -151,7 +155,7 @@ class ExecutiveLogic:
     def __query_server(self, command: MessageType, args: list):
         """
         Called whenever information must be obtained from the server (e.g. asking the user for something).
-        :param command: (QueryCommand) The command to be executed, like "SPIN" or "SEE_SCORE"
+        :param command: (MessageType) The command to be executed, like "JEOPARDY_CATEGORY" or "PLAYERS_CHOICE"
         :param args: (list) Any additional arguments that must be sent to the server
         :return: void
         """
@@ -168,7 +172,7 @@ class ExecutiveLogic:
     def store_query(self, command: MessageType, args: list):
         """
         Called by the server to return the result of a query from __query_server.
-        :param command: (QueryCommand) The command that was executed, like "SPIN" or "SEE_SCORE"
+        :param command: (MessageType) The command that was executed, like "JEOPARDY_CATEGORY" or "PLAYERS_CHOICE"
         :param args: (list) Any information that must be returned to ExecLogic
         :return: void
         """
