@@ -1,18 +1,22 @@
-@startuml Send Updated Scoreboard to Clients
-title Send Updated Scoreboard to Clients
+@startuml Send Updated Scoreboard to Players
+title Send Updated Scoreboard to Players
 
-participant Client1 #Plum
-participant Client2 #Plum
+boundary    UI1
+boundary    UI2  
 
 box "Game Server" #LightSteelBlue
 participant MessageServer as Server
 participant ExecutiveLogic
 end box
 
-        group#Magenta Send Updated Scoreboard to Clients
+        group#Magenta Send Updated Scoreboard to Players
             Server <- ExecutiveLogic: updateScoreboard(scores, tokens)
             Client1 <- Server: send("SCOREBOARD", [scores, tokens])
             Client2 <- Server: send("SCOREBOARD", [scores, tokens])
+
+
+            UI1 <- Client1: updateScores(scores, tokens)
+            UI2 <- Client2: updateScores(scores, tokens)
         end
 
 @enduml

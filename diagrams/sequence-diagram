@@ -3,6 +3,12 @@ title Players Play a WoJ Game
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 
+actor ActivePlayer as Player1 #Orange 
+actor Opponent as Player2 #blue
+
+boundary    UI1
+boundary    UI2  
+
 participant Client1 #Plum
 participant Client2 #Plum
 
@@ -15,6 +21,7 @@ participant Wheel
 
 Client1 -> Server: connect(svrIP, svrPort)
 Client1 <- Server: send("PlayerID", ID)
+
 Client2 -> Server: connect(svrIP, svrPort)
 Client2 -> Server: send("PlayerID", ID)
 
@@ -22,37 +29,25 @@ Client2 -> Server: send("PlayerID", ID)
 Server -> ExecutiveLogic : startGame([playerID])
 loop#Gold 2 times
     ExecutiveLogic -> ExecutiveLogic: incrementRound()
+
     ExecutiveLogic -> GameBoard : getAvailableCategories(round)
     ExecutiveLogic <-- GameBoard : [available]
     ExecutiveLogic -> Wheel : updateCategories([available])
     == START ROUND ==
     loop#Gold number of spins < 50 and board is not empty
         == START TURN ==
-        Server <- ExecutiveLogic : whoseTurn()
 
-        group#mediumseagreen Prompt Player to Spin
-            Client1 <- Server: send("pleaseSpin", playerID)
-
-            alt#MediumTurquoise Player responds
-
-                Client1 --> Server: send("Spin Wheel")
-                Server --> ExecutiveLogic: spinRequest()
-
-            else No player response
-                Server --> ExecutiveLogic: timeout()
-                ExecutiveLogic -> ExecutiveLogic: nextPlayer()
-
-            end
-        end
-
-        ExecutiveLogic -> Wheel : getSpinResult()
-        ExecutiveLogic <-- Wheel : sector
-
-        ref#Cyan over Client1, ExecutiveLogic
-            Send Spin Result to Clients
+        ref over Player1, Wheel
+            Prompt Player to Spin Wheel
         end ref
 
-        ref over Client1, ScoreKeeper
+
+
+        ref#Cyan over UI1, ExecutiveLogic
+            Send Spin Result to Players
+        end ref
+
+        ref over Player1, ScoreKeeper
             Respond to Wheel Spin
         end ref
 

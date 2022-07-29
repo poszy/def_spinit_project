@@ -4,8 +4,11 @@ title Player Answers Question
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 
+actor ActivePlayer as Player1 #Orange 
+
+boundary    UI1
+
 participant Client1 #Plum
-participant Client2 #Plum
 
 box "Game Server" #LightSteelBlue
 participant MessageServer as Server
@@ -21,11 +24,14 @@ ExecutiveLogic <-- GameBoard: Tile
 Server <- ExecutiveLogic: askQuestion(question, [ansChoice])
 
 Client1 <- Server: send("Question", question, [ansChoice])
+UI1 <- Client1: displayQuestion(question, [ansChoice])
 
     alt#MediumTurquoise Player responds
 
-        Client1 --> Server: send("AnswerChoice", playerAns)
-        Server --> ExecutiveLogic: playerAns(plyerAns)
+    Player1 -> UI1: selects answer
+        UI1 -> Client1: userInput(playerAns)
+        Client1 -> Server: send("AnswerChoice", playerAns)
+        Server -> ExecutiveLogic: playerAns(plyerAns)
 
 
         ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
@@ -33,8 +39,8 @@ Client1 <- Server: send("Question", question, [ansChoice])
         ExecutiveLogic -> ScoreKeeper : updateScore(playerID, playerCorrect, points)
         ExecutiveLogic <-- ScoreKeeper: scores
         
-        ref#Magenta over Client1, ExecutiveLogic
-            Send Updated Scoreboard to Clients
+        ref#Magenta over UI1, ExecutiveLogic
+            Send Updated Scoreboard to Players
         end ref
 
         alt#MediumTurquoise Player answers correctly
@@ -46,7 +52,7 @@ Client1 <- Server: send("Question", question, [ansChoice])
             ExecutiveLogic  <-- ScoreKeeper : boolean
 
             alt#MediumTurquoise Player has 1+ has token
-                ref over Client1, ExecutiveLogic #PaleGreen
+                ref over Player1, ExecutiveLogic #PaleGreen
                     Prompt Player to use token 
                 end ref
             else Player has 0 tokens

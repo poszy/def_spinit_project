@@ -1,0 +1,45 @@
+@startuml Prompt Player to Spin Wheel
+title Prompt Player to Spin Wheel
+
+skinparam sequenceReferenceBackgroundColor palegreen
+skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
+
+actor Player1 #orange
+
+boundary    UI1
+
+participant Client1 #Plum
+
+box "Game Server" #LightSteelBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+participant Wheel
+end box
+
+    group#mediumseagreen Prompt Player to Spin Wheel
+        ExecutiveLogic -> ExecutiveLogic: whoseTurn()
+        Server <- ExecutiveLogic : notifyTurn(playerID)
+
+        Client1 <- Server: send("pleaseSpin", playerID)
+        UI1 <- Client1: updateDisplay("pleaseSpin")
+
+        alt#MediumTurquoise Player responds
+            Player1 -> UI1: press spin button
+
+            UI1 -> Client1: userInput("Spin")
+
+            Client1 -> Server: send("Spin Wheel")
+            Server -> ExecutiveLogic: spinRequest()
+                    
+            ExecutiveLogic -> Wheel : getSpinResult()
+            ExecutiveLogic <-- Wheel : sector
+
+        else No player response
+            Server --> ExecutiveLogic: timeout()
+            ExecutiveLogic -> ExecutiveLogic: nextPlayer()
+            break
+
+        end
+    end
+
+@enduml

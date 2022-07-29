@@ -4,6 +4,13 @@ title Respond to Wheel Spin
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 
+
+actor ActivePlayer as Player1 #Orange 
+actor Opponent as Player2 #blue
+
+boundary    UI1
+boundary    UI2
+
 participant Client1 #Plum
 participant Client2 #Plum
 
@@ -18,35 +25,28 @@ end box
 Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
 Client1 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
 Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
-ref#Magenta over Client1, ExecutiveLogic
-        Send Updated Scoreboard to Clients
+ref#Magenta over UI1, ExecutiveLogic
+        Send Updated Scoreboard to Players
 end ref
 
 ExecutiveLogic -> GameBoard : getAvailableCategories(round)
 ExecutiveLogic <-- GameBoard : [availableCategory]
 
 alt#MediumTurquoise "Player's Choice" or "Opponent's Choice"
-    Server <- ExecutiveLogic: selectCategory(playerID, availableCategory)
-    note right
-    Executive Logic selects the 
-    appropriate player to choose
-    the category from list of
-     available categories
-    end note
     
-    Client1 <- Server: send("selectCategory", [availableCategory])
-    Client1 --> Server: send("Category", category)
-    Server --> ExecutiveLogic: selectedCategory(category)
+    ref#Orange over Player1, ExecutiveLogic
+        Player Selects Category
+    end ref
 
     loop#Gold until category is empty
-            ref over Client1, ScoreKeeper
+            ref over Player1, ScoreKeeper
             Player Answers Question
         end ref
     end
 
 else Sector result is an available category
     loop#Gold until category is empty
-        ref over Client1, ScoreKeeper
+        ref over Player1, ScoreKeeper
             Player Answers Question
         end ref
     end
@@ -55,15 +55,15 @@ else Sector result category is NOT available or is "Spin again"
     ExecutiveLogic -> Wheel: getSpinResult()
     ExecutiveLogic <-- Wheel : sector
 
-    ref#Cyan over Client1, ExecutiveLogic
-            Send Spin Result to Clients
+    ref#Cyan over UI1, ExecutiveLogic
+            Send Spin Result to Players
     end ref
 
 else "Free Spin"
     ExecutiveLogic -> ScoreKeeper: addToken(playerID)
     ExecutiveLogic <-- ScoreKeeper: tokens
-    ref#Magenta over Client1, ExecutiveLogic
-        Send Updated Scoreboard to Clients
+    ref#Magenta over UI1, ExecutiveLogic
+        Send Updated Scoreboard to Players
     end ref
 
 
@@ -72,8 +72,8 @@ else "Bankrupt"
     ExecutiveLogic -> ScoreKeeper: bankrupt(playerID)
     ExecutiveLogic <-- ScoreKeeper: scores
 
-    ref#Magenta over Client1, ExecutiveLogic
-        Send Updated Scoreboard to Clients
+    ref#Magenta over UI1, ExecutiveLogic
+        Send Updated Scoreboard to Players
     end ref
 
     ExecutiveLogic -> ExecutiveLogic: nextPlayer()

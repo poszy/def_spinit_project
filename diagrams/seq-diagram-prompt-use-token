@@ -1,8 +1,12 @@
 @startuml Prompt Player to Use Token
 title Prompt Player to Use Token
 
+
+actor ActivePlayer as Player1 #Orange 
+
+boundary    UI1
+
 participant Client1 #Plum
-participant Client2 #Plum
 
 box "Game Server" #LightSteelBlue
 participant MessageServer as Server
@@ -13,6 +17,12 @@ end box
     Server <- ExecutiveLogic: askUseToken(playerID)
 
     Client1 <- Server: send(playerID, "useToken?")
+
+    UI1 <- Client1 : promptUseToken()
+
+    Player1 -> UI1: select YES or NO
+
+        UI1 -> Client1: selected(playerChoice)
 
     alt#MediumTurquoise Player responds YES
         Client1 --> Server: send("YESuseToken")

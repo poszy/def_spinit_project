@@ -1,0 +1,50 @@
+@startuml Player Selects Category
+title Player Selects Category
+
+skinparam sequenceReferenceBackgroundColor palegreen
+skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
+
+actor ActivePlayer as Player1 #Orange 
+actor Opponent as Player2 #blue
+boundary    UI1
+boundary    UI2
+
+participant Client1 #Plum
+participant Client2 #Plum
+
+box "Game Server" #LightSteelBlue
+participant MessageServer as Server
+participant ExecutiveLogic
+participant GameBoard
+participant ScoreKeeper
+end box
+
+    Server <- ExecutiveLogic: selectCategory(playerID, availableCategory)
+    note right
+    Executive Logic selects the 
+    appropriate player to choose
+    the category from list of
+     available categories
+    end note
+    
+    Client2 <- Server: send("selectCategory", [availableCategory])
+
+    UI2 <- Client2: displayOptions(categories)
+
+
+
+    Server --> ExecutiveLogic: selectedCategory(category)
+    alt#MediumTurquoise Player responds
+        Player2 -> UI2: selects category
+        UI2 -> Client2: userInput(category)
+        Client2 --> Server: send("Category", category)
+    Server --> ExecutiveLogic: selectedCategory(category)
+
+    else No player response
+        Server --> ExecutiveLogic: timeout()
+        ExecutiveLogic -> ExecutiveLogic: randomCategory(availableCategory)
+        break
+        end
+    end
+
+@enduml
