@@ -1,5 +1,5 @@
-@startuml Player Selects Category
-title Player Selects Category
+@startuml Prompt Player to Select Category
+title Prompt Player to Select Category
 
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen

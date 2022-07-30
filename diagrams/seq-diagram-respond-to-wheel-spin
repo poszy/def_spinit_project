@@ -35,19 +35,19 @@ ExecutiveLogic <-- GameBoard : [availableCategory]
 alt#MediumTurquoise "Player's Choice" or "Opponent's Choice"
     
     ref#Orange over Player1, ExecutiveLogic
-        Player Selects Category
+        Prompt Player to Select Category
     end ref
 
     loop#Gold until category is empty
             ref over Player1, ScoreKeeper
-            Player Answers Question
+            Prompt Player to Answer Question
         end ref
     end
 
 else Sector result is an available category
     loop#Gold until category is empty
         ref over Player1, ScoreKeeper
-            Player Answers Question
+            Prompt Player to Answer Question
         end ref
     end
 
