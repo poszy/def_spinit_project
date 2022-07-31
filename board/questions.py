@@ -52,7 +52,7 @@ class Questions:
 
     def is_category_open(self, category, round):
 
-        print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
+        #print("QUESTIONS:(check_question) -- Checking Category: " + str(category))
         category_open = False
         if round in range(1, NUM_ROUNDS + 1):  # 2 rounds max
             this_round_board = self.rounds[round]
@@ -81,7 +81,12 @@ class Questions:
                     logging.info(f"deleted {lowest_point_value}, remain dict is: {self.rounds[round][category]}")
 
                     return next_tile
-            return False
+                else:
+                    raise Exception(f"get_tile tried to poll a category (%s) that was out of tiles!", category)
+            else:
+                raise Exception(f"Category %s does not exist on this game board!", category)
+        else:
+            raise Exception(f"Round number %s is not a valid round in questions.py!", str(round))
 
 # a = Questions()
 # a.check_question("politics")
