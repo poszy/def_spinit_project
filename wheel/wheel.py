@@ -22,6 +22,7 @@ class Wheel:
 
         # Access category_list with that number
         spin_result = self.category_list[rand]
+        print(spin_result)
 
         return spin_result
 
