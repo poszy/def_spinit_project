@@ -13,4 +13,4 @@ SRV_IP = 'localhost'
 logging.basicConfig(level=logging.INFO)
 
 game = executive_logic.ExecutiveLogic(SRV_IP, PORT)
-game.game_server.host_game()  # this is the game maker's laptop # TODO
+game.game_server.host_game()  # this is the game maker's laptop

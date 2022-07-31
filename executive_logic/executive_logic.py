@@ -2,18 +2,11 @@ from board.board import Board
 from score_keeper.score_keeper import ScoreKeeper
 from ui.user_interface import UserInterface
 from wheel.wheel import Wheel, Sector
-from server import GameServer
-from server import Message, MessageType
+from server import GameServer, QueryStatus, Message, MessageType
 from enum import Enum
 import time
 
 MAX_SPINS = 50
-
-
-class QueryStatus(Enum):
-    SERVER_TO_CLIENT = 1  # Information is being sent from Executive Logic to Server to Client
-    CLIENT_TO_SERVER = 2  # Information is being sent from Client to Server to Executive Logic
-    STANDBY = 3  # No information is being sent right now
 
 
 class ExecutiveLogic:
@@ -51,6 +44,7 @@ class ExecutiveLogic:
         """
         self.num_spins = 0
         curr_player_id = None
+        # TODO: At start of round, send Jeopardy board to server (then client)
 
         while self.num_spins < MAX_SPINS and self.board.get_available_categories(
                 round_num):  # End round when spins >= 50 or no available questions
