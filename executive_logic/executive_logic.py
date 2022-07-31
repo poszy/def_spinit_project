@@ -44,7 +44,7 @@ class ExecutiveLogic:
         """
         self.num_spins = 0
         curr_player_id = None
-        # TODO: At start of round, send Jeopardy board to server (then client)
+        # TODO: At start of round, send Jeopardy board to server (then client) with UPDATE_BOARD MessageType
 
         while self.num_spins < MAX_SPINS and self.board.get_available_categories(
                 round_num):  # End round when spins >= 50 or no available questions
@@ -63,7 +63,7 @@ class ExecutiveLogic:
         if self.num_spins >= MAX_SPINS:
             return
         wheel_result = self.__spin_wheel()
-        self.game_server.notify_spin_result(curr_player_id, wheel_result)  # TODO: This method is unimplemented in server.py. Replace this call with __query_server?
+        #self.__query_server(MessageType.SPIN_RESULT, [wheel_result])  # TODO: Implement, so that user can see what sector they spun
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
@@ -158,7 +158,6 @@ class ExecutiveLogic:
         self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
 
         while self.query_response.code is not command:  # Wait for a response of the right type from the server
-            # time.sleep(0.1) # TODO: Remove
             pass
 
     def store_query(self, command: MessageType, args: list):

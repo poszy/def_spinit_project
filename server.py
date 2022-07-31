@@ -35,7 +35,9 @@ class MessageType(Enum):
     # Request  Args: 	[]
     # Response Args:	[]
 
-    PLAYER_ID = 1  # TODO: Write doc
+    PLAYER_ID = 1  # Called by server the first time it connects to a client. Assigns that client its unique player ID.
+    # Request Args:     [player_id]
+    # Response Args:    []
 
     JEOPARDY_QUESTION = 2  # Called to ask server to ask client to answer a Jeopardy question.
     # Request  Args: 	[player_id, Board.tile]
@@ -61,6 +63,9 @@ class MessageType(Enum):
     # Request  Args: 	[scores_dict, tokens_dict, num_spins]
     # Response Args:	[]
 
+    # TODO: Add UPDATE_BOARD message, to tell client what the board looks like at the start of the round
+
+    # TODO: Add SPIN_RESULT message, to tell client the result of the latest spin
 
 
 
@@ -182,7 +187,6 @@ class GameServer(Messenger):
                 self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
 
             elif self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client
-                # time.sleep(0.1) # TODO: Remove
                 continue
 
             else:
@@ -210,13 +214,4 @@ class GameServer(Messenger):
         pass
 
     def spin_again(self):
-        pass
-
-    def notify_spin_result(self, curr_player_id, wheel_result):
-        """
-		Notifies client of a wheel spin result, so that it can display in the UI.
-		:param curr_player_id: Player that spun the wheel.
-		:param wheel_result: Result of the spin.
-		:return: void
-		"""
         pass

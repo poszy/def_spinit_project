@@ -28,27 +28,33 @@ class Client(Messenger):
 
         self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
 
-
-    # SETUP SUBSYSTEMS
-    # self.ui = UserInterface()
-
     def connect_to_game(self, host, port):
+        """
+        Connects client to a game server. Called once, before the beginning of the game.
+        Spawns new thread for handle_connection.
+        """
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
         server.connect((host, port))
         logging.info("Connecting to the game server")
         threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
 
     def handle_connection(self, server):
+        """
+        Main loop for client. Runs in a separate thread for the duration of the game.
+        Listens for server requests, gets input from user, then returns info to server.
+        :param server: Reference to server object
+        :return: void
+        """
         logging.info("Entered handle_connections")
 
         self.__set_player_id(server)  # Receive this client's player ID from server
 
-        while not self.game_over:
-            parsed_message = self.buffer_message(server)
+        while not self.game_over:  # Loop until game ends
+            parsed_message = self.buffer_message(server)  # Wait for message from server
             logging.info(f"Client received message from server: %s", parsed_message.code)
 
             response_info = []
-            # TODO: Add logic for each of the received MessageTypes
+
             if parsed_message.code == MessageType.EMPTY:
                 response_info = []
 
@@ -174,6 +180,11 @@ class Client(Messenger):
         return prompt_list[selected_index]
 
     def __set_player_id(self, server):
+        """
+        Waits for a player ID from Server, then stores it in this client's self.player_id
+        :param server: Reference to the Server object
+        :return:
+        """
         logging.info("Waiting for player_id...")
         while not self.game_over:
 
