@@ -13,7 +13,7 @@ class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
         self.board = Board()  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
-        self.wheel = Wheel(["food", "politics", "history", "math", "sports"])  # Wheel object (TODO: These categories should be specified somewhere else, right?)
+        self.wheel = Wheel(["food", "politics"])  # Wheel object (TODO: These categories should be specified somewhere else, right?)
         self.ui = UserInterface()  # UI Object
         self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
 
@@ -135,7 +135,7 @@ class ExecutiveLogic:
         if curr_player_id is None:
             return 0
         else:
-            return (curr_player_id + 1) % self.game_server.players.count()
+            return (curr_player_id + 1) % len(self.game_server.players)
 
     def __spin_wheel(self):
         """
@@ -158,7 +158,7 @@ class ExecutiveLogic:
         self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
 
         while self.query_response.code is not command:  # Wait for a response of the right type from the server
-            time.sleep(0.1)
+            # time.sleep(0.1) # TODO: Remove
             pass
 
     def store_query(self, command: MessageType, args: list):
@@ -168,7 +168,7 @@ class ExecutiveLogic:
         :param args: (list) Any information that must be returned to ExecLogic
         :return: void
         """
-        self.query_response = (command, args)  # Store server response in self.query_response
+        self.query_response = Message(command, args)  # Store server response in self.query_response
 
     def __update_scores_tokens_spins(self):
         """

@@ -14,6 +14,8 @@ class Sector(Enum):
 class Wheel:
 
     def __init__(self, jeopardy_categories):
+        random.seed(42)  # TODO: Setting seed for debugging. Remove to get different results per game.
+
         self.jeopardy_categories = jeopardy_categories
         self.other_sectors = [Sector.LOSE_TURN, Sector.FREE_TURN, Sector.BANKRUPT, Sector.PLAYERS_CHOICE,
                               Sector.OPPONENTS_CHOICE, Sector.SPIN_AGAIN]
@@ -30,7 +32,7 @@ class Wheel:
          """
 
         # Poc logic. Generate random number to get sector.
-        rand = random.randint(0, len(self.sector_list))
+        rand = random.randint(0, len(self.sector_list) - 1)
 
         # Access category_list with that number
         spin_result = self.sector_list[rand]

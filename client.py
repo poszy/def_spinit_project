@@ -45,7 +45,7 @@ class Client(Messenger):
 
         while not self.game_over:
             parsed_message = self.buffer_message(server)
-            logging.info("Client received message from server: %s", parsed_message.code)
+            logging.info(f"Client received message from server: %s", parsed_message.code)
 
             response_info = []
             # TODO: Add logic for each of the received MessageTypes
@@ -53,7 +53,7 @@ class Client(Messenger):
                 response_info = []
 
             elif parsed_message.code == MessageType.PLAYER_ID:
-                raise Exception("This client (ID %s) was already assigned a player ID!", self.player_id)
+                raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
                 [player_id, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -126,7 +126,7 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\n==========================\nEND OF GAME\n==========================\n")
-                print("Player %d has won!", winner_player_id)
+                print(f"Player {winner_player_id} has won!")
                 input("Press enter to end the game")
                 #### END TEXT INTERFACE ####
 
@@ -141,63 +141,18 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\nUPDATED GAME VALUES:")
-                print("Number of Spins: %d", num_spins)
-                for player_id in scores_dict.keys:
-                    print("Player %d: %d points | %d tokens", scores_dict[player_id], tokens_dict[player_id])
+                print(f"Number of Spins: {num_spins}")
+                for player_id in scores_dict:
+                    print(f"Player {player_id}: {scores_dict[player_id]} points | {tokens_dict[player_id]} tokens")
                 print("")
                 #### END TEXT INTERFACE ####
 
                 response_info = []
 
             else:
-                raise Exception("Client %d received unknown MessageType: %s", self.player_id, parsed_message.code)
+                raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
 
             self.send_command(server, Message(parsed_message.code, response_info))
-
-            """
-            if parsed_message.code == MessageType.SPIN_RESULT:
-                logging.info("Received spin result was: " + parsed_message.args[0])
-
-            elif parsed_message.code == MessageType.SPIN_AGAIN:
-                spin_again_command = Message(MessageType.SPIN_AGAIN, [])
-                server.send_command(spin_again_command)
-
-            elif parsed_message.code == MessageType.SEE_SCORE:
-                logging.info("Received current scores: ", parsed_message.args)
-
-                dict_scores = parsed_message.args
-                print("SCORES: ", dict_scores)
-
-            print("\n\n=====================================================\n\n")
-
-            print("Enter a command for the game server:")
-            print("----- 1) Spin the wheel")
-            print("----- 2) See scores")
-            print("----- 3) Select Category")
-
-            turn_message = ""
-            while turn_message not in self.request_map.keys():  # in case someone enters invalid option
-                turn_message = str(input("Command: "))
-            request = self.request_map[turn_message]  # map to request type
-
-            command = Message(request, [])
-
-            # Let player select the category
-            if request == "SELECT_CATEGORY":
-                print("Category Options:")
-                options = range(0, len(self.categories))
-                for cat in options:
-                    print("----- " + str(cat) + ") " + str(self.categories[cat]))
-                    selected_category = ""
-                options_str = [str(opt) for opt in options]
-                while selected_category not in options_str:
-                    max_opt = str(len(self.categories) - 1)
-                    selected_category = input(f"Enter category number (0- {max_opt}): ")
-                    print(f"selected_category = {selected_category}")
-                command = Message(request, selected_category)  # include category in the message
-            
-            self.send_command(server, command)  # send message to game server
-            """
 
     def __prompt_user_from_list(self, prompt_list: list):
         """
@@ -218,34 +173,6 @@ class Client(Messenger):
 
         return prompt_list[selected_index]
 
-    # self.game_over = True
-    # if self.whose_turn == self.player_id:  # it's my turn
-    # 	# player takes a turn
-    #
-    # 	# spin wheel
-    #
-    # 	turn_message = "turn over"
-    #
-    #
-    # else:  # not my turn!
-    # 	data = client.recv(1024)
-    # 	if not data:
-    # 		client.close()
-    # 		break
-    # 	else:
-    # 		parse_request = data.decode('utf').split(',')
-    # 		command = parse_request[0]
-    # 		args = parse_request[1:]
-    # 		if parse_request[0] == 'select_category':  # opponent selects category
-    # 			print("opponent" + self.player_id + "selecting the category")
-    # 			pass
-    # 		elif parse_request[0] =='check_answer': # check answer using server score_keeper
-    # 			print("checking score!")
-    # 			pass
-    # 		# elif parse_request[0] == '' # some other command
-    # 		else:
-    # 			self.refresh_display()
-
     def __set_player_id(self, server):
         logging.info("Waiting for player_id...")
         while not self.game_over:
@@ -258,6 +185,9 @@ class Client(Messenger):
                 logging.info("Player ID %s received", self.player_id)
                 return
 
+    ########
+    # TODO: Functions deprecated below this point?
+    ########
     def refresh_score(self, score):
         """
 		Send out the updated score to the clients

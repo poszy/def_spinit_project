@@ -182,26 +182,16 @@ class GameServer(Messenger):
                 self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
 
             elif self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client
-                time.sleep(0.1)
+                # time.sleep(0.1) # TODO: Remove
                 continue
+
             else:
-                raise Exception("Unknown query status in server!")
+                # raise Exception("Unknown query status %s in server!", self.executive_logic.query_status)
+                pass
 
-    # self.game_over = True
-    # # command = parse_request[0]
-    # args = parse_request[1:]
-
-    # 		if parse_request[0] == 'select_category':  # opponent selects category
-    # 			print("opponent" + self.player_id + "selecting the category")
-    # 			pass
-    # 		elif parse_request[0] =='check_answer': # check answer using server score_keeper
-    # 			print("checking score!")
-    # 			pass
-    # 		# elif parse_request[0] == '' # some other command
-    # 		else:
-    # 			self.refresh_display()
-
-    # client.close()  # close connection
+    ##########
+    # TODO: Deprecated functions below this point?
+    ##########
 
     def refresh_score(self, score):
         """
