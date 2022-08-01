@@ -33,7 +33,6 @@
 
 
   class Messenger {
-    sendMsg(receiver, msg)
  }
 
   class GameServer {
@@ -54,24 +53,25 @@
 Messenger <|-- GameServer
 Messenger <|-- Client
 
-Client *--- UI /' composition '/
+Client "1" <---> "1" UI /' composition '/
 
-Client o--- "*" Message /' aggregation '/
-MsgServer o--- "*" Message /' aggregation '/
+Client "*"---> "*" Message /' aggregation '/
+GameServer "1"---> "*" Message /' aggregation '/
 
-Client ---> "*" GameServer /' aggregation '/
-
-
-ExecutiveLogic *---> Wheel
-ExecutiveLogic *---> ScoreKeeper
-ExecutiveLogic *---> GameBoard
-ExecutiveLogic ---* GameServer
+Client "*" <---> "1" GameServer /' assoc '/
 
 
-Button "*" ---o UI /' aggregation '/
-TextDisplay "*" ---o UI /' aggregation '/
+ExecutiveLogic "1" o---> "1" Wheel
+ExecutiveLogic "1" o---> "1" ScoreKeeper
+ExecutiveLogic "1" o---> "1" GameBoard
+ExecutiveLogic "1" o---> "1" GameServer
 
-GameBoard *--- "*" Tile /' composition '/
+Frame "*" <--> "1" UI /' assoc '/
+
+Button "*" <---> "1" Frame /' assoc '/
+TextDisplay "*" <---> "1" Frame /' assoc '/
+
+GameBoard o---> "*" Tile /' composition '/
 
 
 @enduml
