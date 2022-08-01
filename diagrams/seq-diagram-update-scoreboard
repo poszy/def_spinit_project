@@ -4,19 +4,22 @@ title Send Updated Scoreboard to Players
 boundary    UI1
 boundary    UI2  
 
+participant Client1 #Plum
+participant Client2 #Plum
+
 box "Game Server" #LightSteelBlue
 participant MessageServer as Server
 participant ExecutiveLogic
 end box
 
         group#Magenta Send Updated Scoreboard to Players
-            Server <- ExecutiveLogic: updateScoreboard(scores, tokens)
-            Client1 <- Server: send("SCOREBOARD", [scores, tokens])
-            Client2 <- Server: send("SCOREBOARD", [scores, tokens])
+            Server <- ExecutiveLogic: query_server("UPDATE_SCORES",[scores,tokens, num_spins])
+            Client1 <- Server: send("UPDATE_SCORES",[scores,tokens, num_spins])
+            Client2 <- Server: send("UPDATE_SCORES",[scores,tokens, num_spins])
 
 
-            UI1 <- Client1: updateScores(scores, tokens)
-            UI2 <- Client2: updateScores(scores, tokens)
+            UI1 <- Client1: updateScores(scores, tokens, num_spins)
+            UI2 <- Client2: updateScores(scores, tokens, num_spins)
         end
 
 @enduml

@@ -18,18 +18,18 @@ end box
 
     group#mediumseagreen Prompt Player to Spin Wheel
         ExecutiveLogic -> ExecutiveLogic: whoseTurn()
-        Server <- ExecutiveLogic : notifyTurn(playerID)
+        Server <- ExecutiveLogic : queryServer("SPIN", [playerID])
 
-        Client1 <- Server: send("pleaseSpin", playerID)
-        UI1 <- Client1: updateDisplay("pleaseSpin")
+        Client1 <- Server: send("SPIN", playerID)
+        UI1 <- Client1: updateDisplay("SPIN")
 
         alt#MediumTurquoise Player responds
             Player1 -> UI1: press spin button
 
-            UI1 -> Client1: userInput("Spin")
+            UI1 -> Client1:  sendUserAnswer("SPIN")
 
-            Client1 -> Server: send("Spin Wheel")
-            Server -> ExecutiveLogic: spinRequest()
+            Client1 -> Server: send("Spin")
+            Server -> ExecutiveLogic: storeQuery("SPIN",[])
                     
             ExecutiveLogic -> Wheel : getSpinResult()
             ExecutiveLogic <-- Wheel : sector

@@ -12,13 +12,14 @@ participant MessageServer as Server
 participant ExecutiveLogic
 end box
 
+
     group#Cyan Send Spin Result to Players
         ExecutiveLogic -> ExecutiveLogic : incrementSpinCounter()
 
-        Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
-        Client1 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
-        Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
-    
+        Server <- ExecutiveLogic: queryServer("SPIN_RESULT", [wheel_result, spinsRemain])
+        Client1 <- Server: send("SPIN_RESULT", [wheel_result, spinsRemain])
+        Client2 <- Server: send("SPIN_RESULT", [wheel_result, spinsRemain])
+            
         UI1 <- Client1: updateDisplay(spinResult)
         UI2 <- Client2: updateDisplay(spinResult)
 

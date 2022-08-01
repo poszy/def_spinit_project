@@ -22,9 +22,11 @@ participant ScoreKeeper
 participant Wheel
 end box
 
-Server <- ExecutiveLogic: spinResult(playerID, spinResult, spinsRemain)
-Client1 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
-Client2 <- Server: send("spinupdateDisplay", spinResult, spinsRemain)
+
+ref#Cyan over UI1, ExecutiveLogic
+        Send Spin Result to Players
+end ref
+
 ref#Magenta over UI1, ExecutiveLogic
         Send Updated Scoreboard to Players
 end ref

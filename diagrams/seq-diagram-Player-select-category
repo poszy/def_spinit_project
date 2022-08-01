@@ -19,7 +19,7 @@ participant GameBoard
 participant ScoreKeeper
 end box
 
-    Server <- ExecutiveLogic: selectCategory(playerID, availableCategory)
+    Server <- ExecutiveLogic: query_server("OPPONENTS_CHOICE", [player_id, [category]]])
     note right
     Executive Logic selects the 
     appropriate player to choose
@@ -27,18 +27,15 @@ end box
      available categories
     end note
     
-    Client2 <- Server: send("selectCategory", [availableCategory])
+    Client2 <- Server: send("OPPONENTS_CHOICE",[category])
 
-    UI2 <- Client2: displayOptions(categories)
+    UI2 <- Client2: displayOptions([category])
 
-
-
-    Server --> ExecutiveLogic: selectedCategory(category)
     alt#MediumTurquoise Player responds
         Player2 -> UI2: selects category
-        UI2 -> Client2: userInput(category)
-        Client2 --> Server: send("Category", category)
-    Server --> ExecutiveLogic: selectedCategory(category)
+        UI2 -> Client2: sendUserAnswer(category)
+        Client2 --> Server: send(server,"OPPONENTS_CHOICE",[category]])
+    Server --> ExecutiveLogic: storeQuery("OPPONENTS_CHOICE",[category])
 
     else No player response
         Server --> ExecutiveLogic: timeout()

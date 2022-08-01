@@ -14,7 +14,7 @@ participant ExecutiveLogic
 participant ScoreKeeper
 end box
 
-    Server <- ExecutiveLogic: askUseToken(playerID)
+    Server <- ExecutiveLogic: queryServer("USE_TOKEN", [playerID])
 
     Client1 <- Server: send(playerID, "useToken?")
 
@@ -22,15 +22,15 @@ end box
 
     Player1 -> UI1: select YES or NO
 
-        UI1 -> Client1: selected(playerChoice)
+        UI1 -> Client1: sendUserAnswer(useToken: boolean)
 
     alt#MediumTurquoise Player responds YES
         Client1 --> Server: send("YESuseToken")
-        Server --> ExecutiveLogic: YESuseToken()
+        Server --> ExecutiveLogic: storeQuery("TOKEN",[useToken])
         ExecutiveLogic -> ScoreKeeper: useToken()
     else Player responds NO
         Client1 --> Server: send("NOTuseToken")
-        Server --> ExecutiveLogic: NOTuseToken()
+        Server --> ExecutiveLogic: storeQuery("TOKEN",[useToken])
         ExecutiveLogic -> ExecutiveLogic: nextPlayer()
     else No player response
         Server --> ExecutiveLogic: timeout()

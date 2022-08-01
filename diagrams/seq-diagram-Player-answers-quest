@@ -20,7 +20,7 @@ end box
 ExecutiveLogic -> GameBoard: getTile(round, category)
 ExecutiveLogic <-- GameBoard: Tile
 
-Server <- ExecutiveLogic: askQuestion(question, [ansChoice])
+Server <- ExecutiveLogic: query_server("JEOPARDY_QUESTION", [player_id, tile])
 
 Client1 <- Server: send("Question", question, [ansChoice])
 UI1 <- Client1: displayQuestion(question, [ansChoice])
@@ -28,9 +28,9 @@ UI1 <- Client1: displayQuestion(question, [ansChoice])
     alt#MediumTurquoise Player responds
 
     Player1 -> UI1: selects answer
-        UI1 -> Client1: userInput(playerAns)
-        Client1 -> Server: send("AnswerChoice", playerAns)
-        Server -> ExecutiveLogic: playerAns(plyerAns)
+        UI1 -> Client1: sendUserAnswer(playerAns)
+        Client1 -> Server: send(server,"AnswerChoice",playerAns)
+        Server -> ExecutiveLogic: storeQuery(command, args)
 
 
         ExecutiveLogic -> GameBoard : checkAnswer(playerAns, tile)
