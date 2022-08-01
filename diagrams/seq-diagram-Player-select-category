@@ -4,9 +4,7 @@ title Prompt Player to Select Category
 skinparam sequenceReferenceBackgroundColor palegreen
 skinparam sequenceReferenceHeaderBackgroundColor  mediumseagreen
 
-actor ActivePlayer as Player1 #Orange 
 actor Opponent as Player2 #blue
-boundary    UI1
 boundary    UI2
 
 participant Client1 #Plum
@@ -15,8 +13,7 @@ participant Client2 #Plum
 box "Game Server" #LightSteelBlue
 participant MessageServer as Server
 participant ExecutiveLogic
-participant GameBoard
-participant ScoreKeeper
+
 end box
 
     Server <- ExecutiveLogic: query_server("OPPONENTS_CHOICE", [player_id, [category]]])
