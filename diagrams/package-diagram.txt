@@ -1,0 +1,84 @@
+@startuml
+
+ package ExecutiveLogic {
+
+ }
+
+
+ package ScoreKeeper {
+
+
+ }
+  package GameBoard {
+
+ }
+
+ package Tile {
+
+ }
+  
+
+ package Wheel {
+
+ }
+
+
+  package UI {
+
+ }
+
+ package Button
+ package TextDisplay
+ package Frame
+
+
+  package Messenger {
+ }
+
+  package GameServer {
+
+
+ }
+
+  package Client {
+ }
+
+ package GameBoard {
+ }
+
+  package Message {
+
+ }
+package  "Messenger" {
+    
+}
+
+package  "Socket" {
+    
+}
+package  "Threading" {
+}
+
+GameServer ..> Messenger:"<<Merge>>"
+Client ..> Messenger:"<<Merge>>"
+
+
+Messenger ..> Threading:"<<access>>"
+Messenger ..> Socket:"<<access>>"
+Messenger ..> Message:"<<import>>"
+
+
+Client ..> UI:"<<access>>"
+UI ..> Frame:"<<access>>"
+Frame ..> Button:"<<access>>"
+Frame ..> TextDisplay:"<<access>>"
+
+
+
+ExecutiveLogic ..> GameBoard:"<<access>>"
+ExecutiveLogic ..> ScoreKeeper:"<<access>>"
+ExecutiveLogic ..> Wheel:"<<access>>"
+ExecutiveLogic ..> GameServer:"<<access>>"
+GameBoard ..> Tile:"<<import>>"
+
+@enduml
