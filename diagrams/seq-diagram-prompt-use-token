@@ -18,7 +18,7 @@ end box
 
     Client1 <- Server: send(playerID, "useToken?")
 
-    UI1 <- Client1 : promptUseToken()
+    UI1 <- Client1 : updateDisplay("USETOKEN?", [])
 
     Player1 -> UI1: select YES or NO
 

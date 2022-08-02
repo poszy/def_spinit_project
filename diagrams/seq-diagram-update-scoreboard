@@ -18,8 +18,8 @@ end box
             Client2 <- Server: send("UPDATE_SCORES",[scores,tokens, num_spins])
 
 
-            UI1 <- Client1: updateScores(scores, tokens, num_spins)
-            UI2 <- Client2: updateScores(scores, tokens, num_spins)
+            UI1 <- Client1: updateDisplay("SCORES",[scores, tokens, num_spins])
+            UI2 <- Client2: updateDisplay("SCORES",[scores, tokens, num_spins])
         end
 
 @enduml

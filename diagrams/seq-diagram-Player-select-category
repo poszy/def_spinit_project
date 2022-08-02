@@ -24,9 +24,9 @@ end box
      available categories
     end note
     
-    Client2 <- Server: send("OPPONENTS_CHOICE",[category])
+    Client2 <- Server: ("OPPONENTS_CHOICE",[category])
 
-    UI2 <- Client2: displayOptions([category])
+    UI2 <- Client2: updateDisplay("SELECT_CAT", [[category]])
 
     alt#MediumTurquoise Player responds
         Player2 -> UI2: selects category

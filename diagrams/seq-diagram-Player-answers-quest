@@ -23,7 +23,7 @@ ExecutiveLogic <-- GameBoard: Tile
 Server <- ExecutiveLogic: query_server("JEOPARDY_QUESTION", [player_id, tile])
 
 Client1 <- Server: send("Question", question, [ansChoice])
-UI1 <- Client1: displayQuestion(question, [ansChoice])
+UI1 <- Client1: updateDisplay("QUESTION", [question, [ansChoice]])
 
     alt#MediumTurquoise Player responds
 

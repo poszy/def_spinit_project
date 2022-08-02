@@ -21,7 +21,7 @@ end box
         Server <- ExecutiveLogic : queryServer("SPIN", [playerID])
 
         Client1 <- Server: send("SPIN", playerID)
-        UI1 <- Client1: updateDisplay("SPIN")
+        UI1 <- Client1: updateDisplay("SPIN", [])
 
         alt#MediumTurquoise Player responds
             Player1 -> UI1: press spin button

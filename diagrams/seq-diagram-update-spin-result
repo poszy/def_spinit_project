@@ -20,8 +20,8 @@ end box
         Client1 <- Server: send("SPIN_RESULT", [wheel_result, spinsRemain])
         Client2 <- Server: send("SPIN_RESULT", [wheel_result, spinsRemain])
             
-        UI1 <- Client1: updateDisplay(spinResult)
-        UI2 <- Client2: updateDisplay(spinResult)
+        UI1 <- Client1: updateDisplay("SPIN_RESULT",[wheel_result, spinsRemain])
+        UI2 <- Client2: updateDisplay("SPIN_RESULT",[wheel_result, spinsRemain])
 
     end
 
