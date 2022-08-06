@@ -5,16 +5,18 @@ from wheel.wheel import Wheel, Sector
 from server import GameServer, QueryStatus, Message, MessageType
 from enum import Enum
 import time
+import logging
 
 MAX_SPINS = 50
+NUM_ROUNDS = 2
 
 
 class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
         self.board = Board()  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
-        self.wheel = Wheel(self.board.get_available_categories(
-            round))  # Wheel object (TODO: These categories should be specified somewhere else, right?)
+        self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
+        # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
         self.ui = UserInterface()  # UI Object
         self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
 
@@ -31,7 +33,7 @@ class ExecutiveLogic:
         """
         self.is_game_running = True
 
-        for round_num in [1, 2]:
+        for round_num in range(0, NUM_ROUNDS):
             self.board.reset_board(round_num)
             self.__execute_round(round_num)
 
@@ -46,11 +48,12 @@ class ExecutiveLogic:
         self.num_spins = 0
         curr_player_id = None
         # TODO: At start of round, send Jeopardy board to server (then client) with UPDATE_BOARD MessageType
-
-        while self.num_spins < MAX_SPINS and self.board.get_available_categories(
-                round_num):  # End round when spins >= 50 or no available questions
+        # End round when spins >= 50 or no available questions
+        while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):
             curr_player_id = self.__next_player(curr_player_id)
-            self.__query_server(MessageType.SPIN, [curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
+            # Notify player that it's their turn, ask them to push a button to spin the wheel,
+            # and wait for their response
+            self.__query_server(MessageType.SPIN, [curr_player_id])
             self.__execute_turn(curr_player_id, round_num)
 
     def __execute_turn(self, curr_player_id, round_num):
@@ -64,7 +67,8 @@ class ExecutiveLogic:
         if self.num_spins >= MAX_SPINS:
             return
         wheel_result = self.__spin_wheel()
-        #self.__query_server(MessageType.SPIN_RESULT, [wheel_result])  # TODO: Implement, so that user can see what sector they spun
+        # self.__query_server(MessageType.SPIN_RESULT, [wheel_result])
+        # TODO: Implement, so that user can see what sector they spun
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
