@@ -11,7 +11,7 @@ NUM_WRONG_ANS = 2
 NUM_QUESTIONS_PER_CATEGORY = 5
 NUM_ROUNDS = 2
 NUM_CATEGORIES_PER_ROUND = 6
-
+ROUND_1_POINTS = [200, 400, 600, 800, 1000]
 
 class Tile:
     def __init__(self, question, answers, r_answer, points):
@@ -88,7 +88,7 @@ class TileLoader:
         """
         # remove categories with too few answers
         for category, ansChoices in ans_choices_by_category.items():
-            if len(ansChoices) < NUM_QUESTIONS_PER_CATEGORY:  # category doesn't have enough questions
+            if len(ansChoices) != NUM_QUESTIONS_PER_CATEGORY:  # category doesn't have enough questions, or has too many
                 # remove from the list!
                 if category in dict_from_csv:  # hasn't already been deleted
                     del dict_from_csv[category]
@@ -138,9 +138,12 @@ class TileLoader:
                 shuffled_ans = self.__make_question_multiple_choice(possibleAnswers, rightAnswer)
 
                 clue = question["clue"]
-                point_str = question["value"]
-                point_str = locale.atoi(point_str)  # OK with commas for thousands place
-                points = int(point_str)
+                # point_str = question["value"]  # use point values fom the CSV
+                # point_str = locale.atoi(point_str)  # OK with commas for thousands place
+                # points = int(point_str)
+
+                # set point values as though this was round 1.
+                points = ROUND_1_POINTS[questionIDX]
                 new_tile = Tile(clue, shuffled_ans, rightAnswer, points)
                 category_tiles[category][points] = new_tile
         return category_tiles
