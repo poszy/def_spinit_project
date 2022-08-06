@@ -1,6 +1,9 @@
 import csv
 from collections import defaultdict
 import random
+import locale
+locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+import logging
 
 # pulled questions from JArchive: https://github.com/whymarrh/jeopardy-parser
 # now, pull questions from CSV
@@ -14,7 +17,7 @@ class Tile:
     def __init__(self, question, answers, r_answer, points):
         self.question = question  # String
         self.answers = answers  # list of answers
-        self.r_answer = r_answer  # index of answer in the list of answers
+        self.r_answer = r_answer  # the correct answer to the question
         self.points = points  # int
 
     # interface
@@ -23,12 +26,13 @@ class Tile:
             Checks player's answer against the actual answer
 
             Args:
-            playerAns: index of the player's answer in the list of answers
+            playerAns: string. The player's answer from the list of answers
 
             Returns:
             user_correct: a boolean representing whether or not the user's selection was correct
             points: int, number of points the question is worth
         """
+        # logging.info(f"Checking answer player's {player_ans}, right answer: {self.r_answer}")
         user_correct = (player_ans == self.r_answer)
 
         return user_correct, self.points
@@ -98,7 +102,6 @@ class TileLoader:
         :param rightAnswer: string. the actual answer to the question
         :return:
         shuffled_ans: list. a list of answer choices. The correct answer is randomly placed in the shuffled_ans list
-        actual_answer_index: int. the index of the actual answer in shuffled_ans
         """
         # pick 2 possible answers that are incorrect
         possibleAnswers.remove(rightAnswer)
@@ -112,10 +115,8 @@ class TileLoader:
         shuffled_ans = []  # holds all the possible answers shuffled randomly
         for i in index_shuf:
             shuffled_ans.append(ansOptions[i])
-        # keep index of actual answer
-        actual_answer_index = index_shuf[-1]
 
-        return shuffled_ans, actual_answer_index
+        return shuffled_ans
 
     def __questions_to_tiles(self, dict_from_csv, ans_choices_by_category):
         """
@@ -134,11 +135,13 @@ class TileLoader:
                 possibleAnswers = set(ans_choices_by_category[myCategory])
                 rightAnswer = question["answer"]
 
-                shuffled_ans, actual_answer_index = self.__make_question_multiple_choice(possibleAnswers, rightAnswer)
+                shuffled_ans = self.__make_question_multiple_choice(possibleAnswers, rightAnswer)
 
                 clue = question["clue"]
-                points = question["value"]
-                new_tile = Tile(clue, shuffled_ans, actual_answer_index, points)
+                point_str = question["value"]
+                point_str = locale.atoi(point_str)  # OK with commas for thousands place
+                points = int(point_str)
+                new_tile = Tile(clue, shuffled_ans, rightAnswer, points)
                 category_tiles[category][points] = new_tile
         return category_tiles
 
