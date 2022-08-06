@@ -34,7 +34,6 @@ class Tile:
         return user_correct, self.points
 
 
-
 class TileLoader:
 
     # default constructor
@@ -49,6 +48,13 @@ class TileLoader:
         self.__make_rounds(tiles_by_category)
 
     def __read_questions_in(self, filename):
+        """
+        Read questions from JArchive file
+        :param filename: string. relative path from main.py to the JArchive file
+        :return:
+        dict_from_csv: dictionary. mapping of categories to list of questions in that category
+        ans_choices_by_category: dictionary. mapping of category names to a list of possible multiple choice answers
+        """
         ans_choices_by_category = defaultdict(set)
         dict_from_csv = defaultdict(list)
         with open(filename, mode='r') as csv_file:
@@ -66,6 +72,16 @@ class TileLoader:
         return dict_from_csv, ans_choices_by_category
 
     def __remove_small_categories(self, dict_from_csv, ans_choices_by_category):
+        """
+        Some categories from JArchive don't have enough questions in them. Remove those categories so they cannot be
+        selected
+        :param dict_from_csv: dictionary. mapping of categories to list of questions in that category
+        :param ans_choices_by_category: dictionary. mapping of category names to a list of possible multiple choice
+        answers
+        :return:
+        dict_from_csv: dictionary. mapping of categories to list of questions in that category. All remaining categories
+        must have correct number of questions
+        """
         # remove categories with too few answers
         for category, ansChoices in ans_choices_by_category.items():
             if len(ansChoices) < NUM_QUESTIONS_PER_CATEGORY:  # category doesn't have enough questions
@@ -74,17 +90,26 @@ class TileLoader:
                     del dict_from_csv[category]
         return dict_from_csv
 
-    def __get_ans_options(self, possibleAnswers, rightAnswer):
-        # pick 2 possible answers that are
+    def __make_question_multiple_choice(self, possibleAnswers, rightAnswer):
+        """
+        Make a multiple choice question based on a list of possible answers drawn from answers to the other questions in
+        the category.
+        :param possibleAnswers: list of possible answers
+        :param rightAnswer: string. the actual answer to the question
+        :return:
+        shuffled_ans: list. a list of answer choices. The correct answer is randomly placed in the shuffled_ans list
+        actual_answer_index: int. the index of the actual answer in shuffled_ans
+        """
+        # pick 2 possible answers that are incorrect
         possibleAnswers.remove(rightAnswer)
-        wrongAnsList = random.sample(possibleAnswers, NUM_WRONG_ANS)
+        wrongAnsList = random.sample(possibleAnswers, NUM_WRONG_ANS)  # these are incorrect choices
 
         ansOptions = wrongAnsList + [rightAnswer]
 
         # shuffle the indices of the answers
         index_shuf = list(range(len(ansOptions)))
         random.shuffle(index_shuf)
-        shuffled_ans = []
+        shuffled_ans = []  # holds all the possible answers shuffled randomly
         for i in index_shuf:
             shuffled_ans.append(ansOptions[i])
         # keep index of actual answer
@@ -97,6 +122,8 @@ class TileLoader:
         Take a dictionary of questions and answers and convert them to tiles
         :param dict_from_csv: dictionary of question -> answer pairs
         :param ans_choices_by_category
+        :return:
+        category_tiles: dictionary. mapping category name to mapping of point value to tile
         """
         category_tiles = {}
         for category, questions in dict_from_csv.items():
@@ -107,7 +134,7 @@ class TileLoader:
                 possibleAnswers = set(ans_choices_by_category[myCategory])
                 rightAnswer = question["answer"]
 
-                shuffled_ans, actual_answer_index = self.__get_ans_options(possibleAnswers, rightAnswer)
+                shuffled_ans, actual_answer_index = self.__make_question_multiple_choice(possibleAnswers, rightAnswer)
 
                 clue = question["clue"]
                 points = question["value"]
@@ -116,6 +143,11 @@ class TileLoader:
         return category_tiles
 
     def __make_rounds(self, tiles_by_category):
+        """
+        Randomly select categories and the corresponding tiles to form rounds
+        :param tiles_by_category: dictionary. mapping category name to mapping of point value to tile
+        :return: rounds: dictionary. mapping round number to categories of tiles
+        """
         rounds = {}
         for round_num in range(1, NUM_ROUNDS + 1):
             rounds[round_num] = {}
@@ -123,4 +155,6 @@ class TileLoader:
             # print(f"chose categories {categories_in_round}")
             for cat in categories_in_round:
                 rounds[round_num][cat] = tiles_by_category[cat]
+
+                # TODO: fix point values
         self.rounds = rounds
