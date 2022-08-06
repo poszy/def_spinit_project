@@ -1,5 +1,5 @@
 import logging
-from board.pull_questions_in import TileLoader, Tile
+from board.pull_questions_in import TileLoader
 
 NUM_ROUNDS = 2
 

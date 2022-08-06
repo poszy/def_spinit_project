@@ -5,7 +5,7 @@ import threading
 import logging
 
 from server import Message, QueryStatus, MessageType, Messenger
-from board.questions import Tile
+from board.pull_questions_in import Tile
 
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'

@@ -13,7 +13,8 @@ class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
         self.board = Board()  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
-        self.wheel = Wheel(["food", "politics"])  # Wheel object (TODO: These categories should be specified somewhere else, right?)
+        self.wheel = Wheel(self.board.get_available_categories(
+            round))  # Wheel object (TODO: These categories should be specified somewhere else, right?)
         self.ui = UserInterface()  # UI Object
         self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
 
