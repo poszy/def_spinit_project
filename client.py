@@ -62,7 +62,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                [player_id, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, jeopardy_category, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Display question (tile.question) and answer choices (tile.answers) to user
                 # TODO (UI): Get back user answer and store in user_answer
@@ -72,7 +72,8 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 # Note: Expecting tile.answers to be a list of strings
-                print("Here's your question:")
+                print(f"Category: {jeopardy_category},  {tile.points} points")
+                print(f"Here's your question:")
                 print(str(tile.question))
                 user_answer = self.__prompt_user_from_list(tile.answers)
                 #### END TEXT INTERFACE ####
