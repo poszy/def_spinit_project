@@ -1,18 +1,41 @@
 import csv
 from collections import defaultdict
 import random
-from questions import Tile
 
 # pulled questions from JArchive: https://github.com/whymarrh/jeopardy-parser
 # now, pull questions from CSV
-QUESTIONS_FILE = 'JArchive-questions.csv'
 NUM_WRONG_ANS = 2
 NUM_QUESTIONS_PER_CATEGORY = 5
 NUM_ROUNDS = 2
 NUM_CATEGORIES_PER_ROUND = 6
 
 
-class TileLoader():
+class Tile:
+    def __init__(self, question, answers, r_answer, points):
+        self.question = question  # String
+        self.answers = answers  # list of answers
+        self.r_answer = r_answer  # index of answer in the list of answers
+        self.points = points  # int
+
+    # interface
+    def check_answer(self, player_ans):
+        """
+            Checks player's answer against the actual answer
+
+            Args:
+            playerAns: index of the player's answer in the list of answers
+
+            Returns:
+            user_correct: a boolean representing whether or not the user's selection was correct
+            points: int, number of points the question is worth
+        """
+        user_correct = (player_ans == self.r_answer)
+
+        return user_correct, self.points
+
+
+
+class TileLoader:
 
     # default constructor
     def __init__(self, filename):
@@ -101,8 +124,3 @@ class TileLoader():
             for cat in categories_in_round:
                 rounds[round_num][cat] = tiles_by_category[cat]
         self.rounds = rounds
-
-
-questions_in = TileLoader(QUESTIONS_FILE)
-for round, cat in questions_in.rounds.items():
-    print(cat)

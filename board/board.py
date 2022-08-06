@@ -1,15 +1,15 @@
-from questions import Questions
+from board.questions import Questions
 
 import logging
 
 logging.basicConfig(level=logging.INFO)
-
+QUESTIONS_FILE = 'board/JArchive-questions.csv'  # need to use relative path from current working directory of main.py!
 
 class Board:
 
     # default constructor
     def __init__(self):
-        self.questions = Questions()
+        self.questions = Questions(QUESTIONS_FILE)
 
     def get_tile(self, category, round):
         """Gets the next question in point value from the board.
