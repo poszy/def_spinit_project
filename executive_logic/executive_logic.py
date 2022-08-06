@@ -116,7 +116,7 @@ class ExecutiveLogic:
         :return: void
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
-        self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, tile])  # Display tile to user, wait for response
+        self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, jeopardy_category, tile])  # Display tile to user, wait for response
         _, [user_answer] = self.query_response.code, self.query_response.args
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(player_id, is_correct, points)
