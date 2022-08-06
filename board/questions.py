@@ -8,24 +8,8 @@ class Questions:
 
     # default constructor
     def __init__(self, filename):
-        # # politics_tiles = {100: Tile('politics question 1', ['a', 'b', 'c'], 2, 100),
-        #                   200: Tile('politics question 3', ['a', 'b', 'c'], 2, 200),
-        #                   400: Tile('politics question 3', ['a', 'b', 'c'], 2, 400),
-        #                   800: Tile('politics question 4', ['a', 'b', 'c'], 2, 800)
-        #                   }
-        #
-        # food_tiles = {100: Tile('food question 1', ['a', 'b', 'c'], 2, 100),
-        #               200: Tile('food question 3', ['a', 'b', 'c'], 2, 200),
-        #               400: Tile('food question 3', ['a', 'b', 'c'], 2, 400),
-        #               800: Tile('food question 4', ['a', 'b', 'c'], 2, 800)
-        #               }
         questions_in = TileLoader(filename)
         self.rounds = questions_in.rounds
-        # self.rounds = {1: {"politics": politics_tiles, "food": food_tiles},
-        #                2: {"politics2": politics_tiles, "food2": food_tiles}}
-        # self.politics_iterator = 1
-        #
-        # self.food_iterator = 1
         self.no_category = "There are no more questions left in this category. Spin Again"
 
     def is_category_open(self, category, round):
