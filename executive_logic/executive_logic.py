@@ -96,13 +96,13 @@ class ExecutiveLogic:
         elif wheel_result == Sector.PLAYERS_CHOICE:
             open_categories = self.board.get_available_categories()
             self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, open_categories])
-            _, [chosen_category] = self.query_response
+            _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.OPPONENTS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
             self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, open_categories])
-            _, [chosen_category] = self.query_response
+            _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.SPIN_AGAIN:
