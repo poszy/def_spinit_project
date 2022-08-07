@@ -166,6 +166,7 @@ class ExecutiveLogic:
 
         while self.query_response.code is not command:  # Wait for a response of the right type from the server
             pass
+        logging.info(f"QUERY_SERVER RESPONSE CODE: {self.query_response.code}")
 
     def store_query(self, command: MessageType, args: list):
         """
