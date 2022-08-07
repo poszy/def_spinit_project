@@ -35,6 +35,7 @@ class ExecutiveLogic:
 
         for round_num in range(0, NUM_ROUNDS):
             self.board.reset_board(round_num)
+            self.score_keeper.new_round()
             self.__execute_round(round_num)
 
         self.__end_game()
@@ -72,7 +73,10 @@ class ExecutiveLogic:
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
-            self.__execute_category(wheel_result, curr_player_id, round_num)
+            is_correct = True
+            while is_correct and self.board.is_category_available(wheel_result, round_num):
+                is_correct = self.__execute_category(wheel_result, curr_player_id, round_num)
+
 
         # If result is another wheel sector, handle logic
         elif wheel_result == Sector.LOSE_TURN:
@@ -115,7 +119,7 @@ class ExecutiveLogic:
         """
         Controls the flow of a Jeopardy question. Called when a "category" sector is the result of a wheel spin.
         :param jeopardy_category: Name of jeopardy category
-        :return: void
+        :return: is_correct (bool): True if the player's answer was correct, False otherwise
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
         self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, jeopardy_category, tile])  # Display tile to user, wait for response
@@ -123,6 +127,7 @@ class ExecutiveLogic:
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(player_id, is_correct, points)
         self.__update_scores_tokens_spins()
+        return is_correct
 
     def __end_game(self):
         """
@@ -180,11 +185,11 @@ class ExecutiveLogic:
     def __update_scores_tokens_spins(self):
         """
         Called after a game value is updated that should be reflected in the UI display.
-        Sends server the current player scores, player tokens, and number of spins.
+        Sends server the current player scores, player tokens, and number of spins remaining.
         :return: void
         """
         self.__query_server(MessageType.UPDATE_SCORES,
-                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(), self.num_spins])
+                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(), MAX_SPINS - self.num_spins])
 
     ########
     # TODO: All methods below this point may be deprecated?

@@ -35,7 +35,7 @@ class MessageType(Enum):
     # Request  Args: 	[]
     # Response Args:	[]
 
-    PLAYER_ID = 1  # Called by server the first time it connects to a client. Assigns that client its unique player ID.
+    PLAYER_ID = 1  # Called by server the first time it connects to a client. Assigns that client its unique player ID (0, 1, or 2).
     # Request Args:     [player_id]
     # Response Args:    []
 
@@ -125,11 +125,10 @@ class GameServer(Messenger):
         self.port = srv_port
         self.executive_logic = executive_logic
 
-        self.player_id = 1
         self.whose_turn = 1  # pointer to current player taking turn
         self.game_over = False
 
-        self.next_player_id = 1
+        self.next_player_id = 0
         self.players = []  # keep track of players
 
     def host_game(self):
