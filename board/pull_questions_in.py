@@ -33,7 +33,7 @@ class Tile:
             points: int, number of points the question is worth
         """
         # logging.info(f"Checking answer player's {player_ans}, right answer: {self.r_answer}")
-        user_correct = (player_ans == self.answers[self.r_answer])
+        user_correct = (player_ans == self.r_answer)
 
         return user_correct, self.points
 
