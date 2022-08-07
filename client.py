@@ -1,10 +1,12 @@
-# from ui.user_interface import UserInterface
+from ui.user_interface import UserInterface
 
 import socket
 import threading
 import logging
 
-from server import Message, Messenger
+from server import Message, QueryStatus, MessageType, Messenger
+from board.questions import Tile
+
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
 SRV_PORT = 5555
@@ -13,113 +15,193 @@ HEADER_SIZE = 10
 
 logging.basicConfig(level=logging.INFO)
 
+
 class Client(Messenger):
 
-	# default constructor
-	def __init__(self):
-		self.player_id = 1
-		self.whose_turn = 1  # pointer to curent player taking turn
-		self.game_over = False
+    # default constructor
+    def __init__(self):
+        self.player_id = None
+        self.game_over = False
 
-		# TODO: should actually get from Game Board!
-		self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]
+        self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
-		self.request_map = {"1": "SPIN", "2": "SEE_SCORE", "3": "SELECT_CATEGORY"}
+        self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
 
+    def connect_to_game(self, host, port):
+        """
+        Connects client to a game server. Called once, before the beginning of the game.
+        Spawns new thread for handle_connection.
+        """
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
+        server.connect((host, port))
+        logging.info("Connecting to the game server")
+        threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
 
-	# SETUP SUBSYSTEMS
-	# self.ui = UserInterface()
+    def handle_connection(self, server):
+        """
+        Main loop for client. Runs in a separate thread for the duration of the game.
+        Listens for server requests, gets input from user, then returns info to server.
+        :param server: Reference to server object
+        :return: void
+        """
+        logging.info("Entered handle_connections")
 
-	def connect_to_game(self, host, port):
-		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
-		server.connect((host, port))
-		logging.info("Connecting to the game server")
-		threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
+        self.__set_player_id(server)  # Receive this client's player ID from server
 
-	def handle_connection(self, client):
-		logging.info("Entered handle_connections")
-		# check for round over?
-		# self.ExecutiveLogic
-		while not self.game_over:
-			parsed_message = self.buffer_message(client)
-			logging.info("Received message with command code: %s", parsed_message.code)
+        while not self.game_over:  # Loop until game ends
+            parsed_message = self.buffer_message(server)  # Wait for message from server
+            logging.info(f"Client received message from server: %s", parsed_message.code)
 
-			if parsed_message.code == "PlayerID":
-				self.player_id = parsed_message.args
+            response_info = []
 
-			elif parsed_message.code == "SPIN_RESULT":
-				logging.info("Received spin result was: " + parsed_message.args)
-				if parsed_message.code == "SPIN_AGAIN":
-					spin_again = "1"
-					spin_again_command = Message(spin_again, [])
-					client.send_command(spin_again_command)
+            if parsed_message.code == MessageType.EMPTY:
+                response_info = []
 
-			elif parsed_message.code == "SCORE":
-				logging.info("Received current scores: ", parsed_message.args)
+            elif parsed_message.code == MessageType.PLAYER_ID:
+                raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
-				dict_scores = parsed_message.args
-				print("SCORES: ", dict_scores)
+            elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
+                [player_id, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-			print("\n\n=====================================================\n\n")
+                # TODO (UI): Display question (tile.question) and answer choices (tile.answers) to user
+                # TODO (UI): Get back user answer and store in user_answer
+                # TODO (UI): Delete text interface code below
 
-			print("Enter a command for the game server:")
-			print("----- 1) Spin the wheel")
-			print("----- 2) See scores")
-			print("----- 3) Select Category")
+                user_answer = None  # Note: user_answer should be a string from tile.answers, like user_answer = tile.answers[1]
 
-			turn_message = ""
-			while turn_message not in self.request_map.keys():  # in case someone enters invalid option
-				turn_message = str(input("Command: "))
-			request = self.request_map[turn_message]  # map to request type
+                ### BEGIN TEXT INTERFACE ###
+                # Note: Expecting tile.answers to be a list of strings
+                print("Here's your question:")
+                print(str(tile.question))
+                user_answer = self.__prompt_user_from_list(tile.answers)
+                #### END TEXT INTERFACE ####
 
-			command = Message(request, [])
+                response_info = [user_answer]
 
-			# Let player select the category
-			if request == "SELECT_CATEGORY":
-				print("Category Options:")
-				options = range(0, len(self.categories))
-				for cat in options:
-					print("----- " + str(cat) + ") " + str(self.categories[cat]))
-					selected_category = ""
-				options_str = [str(opt) for opt in options]
-				while selected_category not in options_str:
-					max_opt = str(len(self.categories)-1)
-					selected_category = input(f"Enter category number (0- {max_opt}): ")
-					print(f"selected_category = {selected_category}")
-				command = Message(request, selected_category)  # include category in the message
+            elif parsed_message.code == MessageType.PLAYERS_CHOICE:
+                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-			self.send_command(client, command)  # send message to game server
+                # TODO (UI): Ask this player to select a Jeopardy category for them to answer
+                # TODO (UI): Get back user's selected category and store in chosen_category
+                # TODO (UI): Delete text interface code below
 
-		# self.game_over = True
-		# if self.whose_turn == self.player_id:  # it's my turn
-		# 	# player takes a turn
-		#
-		# 	# spin wheel
-		#
-		# 	turn_message = "turn over"
-		#
-		#
-		# else:  # not my turn!
-		# 	data = client.recv(1024)
-		# 	if not data:
-		# 		client.close()
-		# 		break
-		# 	else:
-		# 		parse_request = data.decode('utf').split(',')
-		# 		command = parse_request[0]
-		# 		args = parse_request[1:]
-		# 		if parse_request[0] == 'select_category':  # opponent selects category
-		# 			print("opponent" + self.player_id + "selecting the category")
-		# 			pass
-		# 		elif parse_request[0] =='check_answer': # check answer using server score_keeper
-		# 			print("checking score!")
-		# 			pass
-		# 		# elif parse_request[0] == '' # some other command
-		# 		else:
-		# 			self.refresh_display()
+                chosen_category = None
 
-	def refresh_score(self, score):
-		"""
+                ### BEGIN TEXT INTERFACE ###
+                print("Player's Choice!")
+                print("Select a Jeopardy category:")
+                chosen_category = self.__prompt_user_from_list(self.categories)
+                #### END TEXT INTERFACE ####
+
+                response_info = [chosen_category]
+
+            elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
+                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+
+                # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
+                # TODO (UI): Get back user's selected category and store in chosen_category
+                # TODO (UI): Delete text interface code below
+
+                chosen_category = None
+
+                ### BEGIN TEXT INTERFACE ###
+                print("Opponent's Choice!")
+                print("Select a Jeopardy category for your opponent to answer:")
+                chosen_category = self.__prompt_user_from_list(self.categories)
+                #### END TEXT INTERFACE ####
+
+                response_info = []
+
+            elif parsed_message.code == MessageType.SPIN:
+                [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+
+                # TODO (UI): Ask this player to push a button to spin the wheel
+                # TODO (UI): Delete text interface code below
+
+                ### BEGIN TEXT INTERFACE ###
+                print("Spin the wheel!")
+                input("Press enter to spin the wheel")
+                #### END TEXT INTERFACE ####
+
+                response_info = []
+
+            elif parsed_message.code == MessageType.END_GAME:
+                [winner_player_id] = parsed_message.args
+
+                # TODO (UI): Tell player the game has ended, and display the winning player id
+                # TODO (UI): Delete text interface code below
+
+                ### BEGIN TEXT INTERFACE ###
+                print("\n==========================\nEND OF GAME\n==========================\n")
+                print(f"Player {winner_player_id} has won!")
+                input("Press enter to end the game")
+                #### END TEXT INTERFACE ####
+
+                self.game_over = True
+                response_info = []
+
+            elif parsed_message.code == MessageType.UPDATE_SCORES:
+                [scores_dict, tokens_dict, num_spins_remaining] = parsed_message.args
+
+                # TODO (UI): Update the UI to display the new scores, number of tokens, and number of spins to players
+                # TODO (UI): Delete text interface code below
+
+                ### BEGIN TEXT INTERFACE ###
+                print("\nUPDATED GAME VALUES:")
+                print(f"Number of Spins Remaining This Round: {num_spins_remaining}")
+                for player_id in scores_dict:
+                    print(f"Player {player_id}: {scores_dict[player_id]} points | {tokens_dict[player_id]} tokens")
+                print("")
+                #### END TEXT INTERFACE ####
+
+                response_info = []
+
+            else:
+                raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
+
+            self.send_command(server, Message(parsed_message.code, response_info))
+
+    def __prompt_user_from_list(self, prompt_list: list):
+        """
+        Print out the contents of a list, and prompt the user to pick one.
+        :param prompt_list: List of strings to pick from (e.g. a list of answers to a Jeopardy question)
+        :return: (string) The answer that the user selected
+        """
+        # Print out the options in the list
+        for i in range(0, len(prompt_list)):
+            print("----- " + str(i) + ") " + str(prompt_list[i]))
+        # Ask user to select an option from the list
+        selected_index = None
+        while selected_index not in range(0, len(prompt_list)):
+            max_index = str(len(prompt_list) - 1)
+            selected_index = int(input(f"Enter option number (0-{max_index}): "))
+
+        print(f"You selected option #{selected_index}")
+
+        return prompt_list[selected_index]
+
+    def __set_player_id(self, server):
+        """
+        Waits for a player ID from Server, then stores it in this client's self.player_id
+        :param server: Reference to the Server object
+        :return:
+        """
+        logging.info("Waiting for player_id...")
+        while not self.game_over:
+
+            parsed_message = self.buffer_message(server)
+            logging.info("Received message with command code: %s", parsed_message.code)
+
+            if parsed_message.code == MessageType.PLAYER_ID:
+                self.player_id = parsed_message.args[0]
+                logging.info("Player ID %s received", self.player_id)
+                return
+
+    ########
+    # TODO: Functions deprecated below this point?
+    ########
+    def refresh_score(self, score):
+        """
 		Send out the updated score to the clients
 
 		Args:
@@ -129,16 +211,16 @@ class Client(Messenger):
 			None
 		"""
 
-		pass
+        pass
 
-	def refresh_display(self, category, score):
-		pass
+    def refresh_display(self, category, score):
+        pass
 
-	def spin_again(self):
-		pass
+    def spin_again(self):
+        pass
 
-	def notify_spin(self):
-		pass
+    def notify_spin(self):
+        pass
 
 
 gameplayer = Client()

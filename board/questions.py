@@ -57,6 +57,7 @@ class Questions:
         Args:
         category: A string containing a category from the board.
 
+
         Returns:
         a boolean.
         """
@@ -108,7 +109,12 @@ class Questions:
                     logging.info(f"deleted {lowest_point_value}, remain dict is: {self.rounds[round][category]}")
 
                     return next_tile
-            return False
+                else:
+                    raise Exception(f"get_tile tried to poll a category (%s) that was out of tiles!", category)
+            else:
+                raise Exception(f"Category %s does not exist on this game board!", category)
+        else:
+            raise Exception(f"Round number %s is not a valid round in questions.py!", str(round))
 
 # a = Questions()
 # a.check_question("politics")
