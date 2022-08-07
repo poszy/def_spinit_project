@@ -43,8 +43,6 @@ class Board:
         Returns:
         a boolean.
         """
-        # TODO: incorporate the ROUND
-
         # print(f"BOARD:(is_category_available) -- checking if category {category} is available ")
         available = self.questions.is_category_open(category, round_num)
 

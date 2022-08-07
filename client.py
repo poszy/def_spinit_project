@@ -180,8 +180,7 @@ class Client(Messenger):
             except:
                 selected_index = None  # re-prompt user to enter index
 
-
-        print(f"You selected option #{selected_index}")
+        print(f"You selected option #{selected_index}, {prompt_list[selected_index]}")
 
         return prompt_list[selected_index]
 
