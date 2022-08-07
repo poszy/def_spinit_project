@@ -94,12 +94,14 @@ class ExecutiveLogic:
             return  # End player turn
 
         elif wheel_result == Sector.PLAYERS_CHOICE:
-            self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, round_num])
+            open_categories = self.board.get_available_categories()
+            self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, open_categories])
             _, [chosen_category] = self.query_response
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.OPPONENTS_CHOICE:
-            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, round_num])
+            open_categories = self.board.get_available_categories(round_num)
+            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, open_categories])
             _, [chosen_category] = self.query_response
             self.__execute_category(chosen_category, curr_player_id, round_num)
 

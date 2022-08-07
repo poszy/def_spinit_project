@@ -26,8 +26,6 @@ class Client(Messenger):
 
         self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
-        self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
-
     def connect_to_game(self, host, port):
         """
         Connects client to a game server. Called once, before the beginning of the game.
@@ -81,7 +79,7 @@ class Client(Messenger):
                 response_info = [user_answer]
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for them to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -92,13 +90,13 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Player's Choice!")
                 print("Select a Jeopardy category:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
 
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -109,8 +107,10 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Opponent's Choice!")
                 print("Select a Jeopardy category for your opponent to answer:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
+
+                response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?

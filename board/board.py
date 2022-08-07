@@ -11,7 +11,6 @@ class Board:
     # default constructor
     def __init__(self):
         self.questions = Questions(QUESTIONS_FILE)
-        logging.info(f"questions.round {self.questions.rounds}")
 
     def get_tile(self, category, round_num):
         """Gets the next question in point value from the board.
@@ -60,8 +59,6 @@ class Board:
         Returns:
         a boolean.
         """
-        logging.info(f"(Board.get_available_categories(round={round_num}))")
-
         # print(f"BOARD:(is_category_available) -- returning available categories for round {round} ")
         available = self.questions.get_open_categories(round_num)
 
