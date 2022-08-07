@@ -5,15 +5,19 @@ from wheel.wheel import Wheel, Sector
 from server import GameServer, QueryStatus, Message, MessageType
 from enum import Enum
 import time
+import logging
 
 MAX_SPINS = 50
+NUM_ROUNDS = 2
 
 
 class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
         self.board = Board()  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
-        self.wheel = Wheel(["food", "politics"])  # Wheel object (TODO: These categories should be specified somewhere else, right?)
+        self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
+        # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
+        self.ui = UserInterface()  # UI Object
         self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
 
         self.is_game_running = True  # True if game is ongoing, False otherwise
@@ -29,7 +33,7 @@ class ExecutiveLogic:
         """
         self.is_game_running = True
 
-        for round_num in [1, 2]:
+        for round_num in range(0, NUM_ROUNDS):
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
             self.__execute_round(round_num)
@@ -45,8 +49,8 @@ class ExecutiveLogic:
         self.num_spins = 0
         curr_player_id = None
         # TODO: At start of round, send Jeopardy board to server (then client) with UPDATE_BOARD MessageType
-
-        while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):  # End round when spins >= 50 or no available questions
+        # End round when spins >= 50 or no available questions
+        while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):
             curr_player_id = self.__next_player(curr_player_id)
             # self.__query_server(MessageType.UPDATE_BOARD, [self.board]) TODO
             self.__query_server(MessageType.SPIN, [curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
@@ -63,7 +67,8 @@ class ExecutiveLogic:
         if self.num_spins >= MAX_SPINS:
             return
         wheel_result = self.__spin_wheel()
-        #self.__query_server(MessageType.SPIN_RESULT, [wheel_result])  # TODO: Implement, so that user can see what sector they spun
+        # self.__query_server(MessageType.SPIN_RESULT, [wheel_result])
+        # TODO: Implement, so that user can see what sector they spun
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
@@ -96,12 +101,14 @@ class ExecutiveLogic:
             return  # End player turn
 
         elif wheel_result == Sector.PLAYERS_CHOICE:
-            self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, round_num])
+            open_categories = self.board.get_available_categories()
+            self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, open_categories])
             _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.OPPONENTS_CHOICE:
-            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, round_num])  # TODO: Have the exec logic pick a random opponent that is not curr_player_id
+            open_categories = self.board.get_available_categories(round_num)
+            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, open_categories])
             _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
@@ -118,7 +125,7 @@ class ExecutiveLogic:
         :return: is_correct (bool): True if the player's answer was correct, False otherwise
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
-        self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, tile])  # Display tile to user, wait for response
+        self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, jeopardy_category, tile])  # Display tile to user, wait for response
         _, [user_answer] = self.query_response.code, self.query_response.args
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(player_id, is_correct, points)
@@ -170,6 +177,7 @@ class ExecutiveLogic:
 
         while self.query_status is not QueryStatus.STANDBY:  # Wait for a response from the server
             pass
+        logging.info(f"QUERY_SERVER RESPONSE CODE: {self.query_response.code}")
 
     def store_query(self, command: MessageType, args: list):
         """
