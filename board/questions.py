@@ -22,7 +22,7 @@ class Tile:
             user_correct: a boolean representing whether or not the user's selection was correct
             points: int, number of points the question is worth
         """
-        user_correct = (player_ans == self.r_answer)
+        user_correct = (player_ans == self.answers[self.r_answer])
 
         return user_correct, self.points
 

@@ -46,9 +46,9 @@ class ExecutiveLogic:
         curr_player_id = None
         # TODO: At start of round, send Jeopardy board to server (then client) with UPDATE_BOARD MessageType
 
-        while self.num_spins < MAX_SPINS and self.board.get_available_categories(
-                round_num):  # End round when spins >= 50 or no available questions
+        while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):  # End round when spins >= 50 or no available questions
             curr_player_id = self.__next_player(curr_player_id)
+            # self.__query_server(MessageType.UPDATE_BOARD, [self.board]) TODO
             self.__query_server(MessageType.SPIN, [curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
             self.__execute_turn(curr_player_id, round_num)
 
@@ -67,9 +67,13 @@ class ExecutiveLogic:
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
-            is_correct = True
-            while is_correct and self.board.is_category_available(wheel_result, round_num):
-                is_correct = self.__execute_category(wheel_result, curr_player_id, round_num)
+            if not self.board.is_category_available(wheel_result, round_num): # If category has no more questions, spin again
+                self.__execute_turn(curr_player_id, round_num)  # Spin again
+            else:
+                is_correct = self.__execute_category(wheel_result, curr_player_id, round_num)  # Ask player Jeopardy question
+                if is_correct:  # If playeris correct, they spin again
+                    self.__execute_turn(curr_player_id, round_num)  # Spin again
+
 
 
         # If result is another wheel sector, handle logic
@@ -157,11 +161,14 @@ class ExecutiveLogic:
         :param args: (list) Any additional arguments that must be sent to the server
         :return: void
         """
-        self.query_response = Message(MessageType.EMPTY, [])  # Clear server's previous response
-        self.query_status = QueryStatus.SERVER_TO_CLIENT  # Tell server we want to query client
-        self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
+        if self.query_status != QueryStatus.STANDBY:  # Wait for previous query to complete
+            pass
 
-        while self.query_response.code is not command:  # Wait for a response of the right type from the server
+        self.query_response = Message(MessageType.EMPTY, [])  # Clear server's previous response
+        self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
+        self.query_status = QueryStatus.SERVER_TO_CLIENT  # Tell server we want to query client
+
+        while self.query_status is not QueryStatus.STANDBY:  # Wait for a response from the server
             pass
 
     def store_query(self, command: MessageType, args: list):

@@ -110,7 +110,7 @@ class Client(Messenger):
                 chosen_category = self.__prompt_user_from_list(self.categories)
                 #### END TEXT INTERFACE ####
 
-                response_info = []
+                response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -174,7 +174,13 @@ class Client(Messenger):
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
             max_index = str(len(prompt_list) - 1)
-            selected_index = int(input(f"Enter option number (0-{max_index}): "))
+            user_input = input(f"Enter option number (0-{max_index}): ")
+            if user_input.isnumeric() and 0 <= int(user_input) <= int(max_index):
+                selected_index = int(user_input)
+            else:
+                print("Invalid entry, try again")
+                continue
+
 
         print(f"You selected option #{selected_index}")
 
