@@ -21,7 +21,6 @@ class Client(Messenger):
     # default constructor
     def __init__(self):
         self.player_id = None
-        self.whose_turn = 1  # TODO: Unused. Currently, each client doesn't know whose turn it is; they're only notified when server asks them something
         self.game_over = False
 
         self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
@@ -111,6 +110,8 @@ class Client(Messenger):
                 chosen_category = self.__prompt_user_from_list(self.categories)
                 #### END TEXT INTERFACE ####
 
+                response_info = []
+
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
@@ -140,14 +141,14 @@ class Client(Messenger):
                 response_info = []
 
             elif parsed_message.code == MessageType.UPDATE_SCORES:
-                [scores_dict, tokens_dict, num_spins] = parsed_message.args
+                [scores_dict, tokens_dict, num_spins_remaining] = parsed_message.args
 
                 # TODO (UI): Update the UI to display the new scores, number of tokens, and number of spins to players
                 # TODO (UI): Delete text interface code below
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\nUPDATED GAME VALUES:")
-                print(f"Number of Spins: {num_spins}")
+                print(f"Number of Spins Remaining This Round: {num_spins_remaining}")
                 for player_id in scores_dict:
                     print(f"Player {player_id}: {scores_dict[player_id]} points | {tokens_dict[player_id]} tokens")
                 print("")
@@ -163,7 +164,7 @@ class Client(Messenger):
     def __prompt_user_from_list(self, prompt_list: list):
         """
         Print out the contents of a list, and prompt the user to pick one.
-        :param prompt_list: List of strings to pick from (e.g. a list of answers to a Jeopardy question
+        :param prompt_list: List of strings to pick from (e.g. a list of answers to a Jeopardy question)
         :return: (string) The answer that the user selected
         """
         # Print out the options in the list
@@ -172,7 +173,7 @@ class Client(Messenger):
         # Ask user to select an option from the list
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
-            max_index = str(len(prompt_list))
+            max_index = str(len(prompt_list) - 1)
             selected_index = int(input(f"Enter option number (0-{max_index}): "))
 
         print(f"You selected option #{selected_index}")

@@ -7,25 +7,10 @@ class ScoreKeeper:
     def __init__(self):
         self.var = "self"
         # given a new key, initializes value to 0. Note: point values can be negative
-        self.player_points = defaultdict(int)
+        self.player_points = defaultdict(int) # Dictionary of player_ids keys mapped to their overall scores for the game
+        self.player_points_current_round = defaultdict(int) # Dictionary of player_ids mapped to their score for the round. Used to bankrupt players for the current round.
         # given a new key, initializes value to 0 Note: # of player_tokens cannot be negative!
         self.player_tokens = defaultdict(int)
-
-    def tally_points(self, user_correct, points, player_id):
-        """
-            Gets the new player_points totals
-
-            Args:
-            category: A string containing a category from the board.
-
-            Returns:
-            userCorrect: a boolean representing whether or not the user's selection was correct
-        """
-        if user_correct:
-            self.player_points[player_id] += points
-        else:
-            self.player_points[player_id] -= points  # player_points can be negative
-        return self.player_points
 
     # interface
     def get_scores(self):
@@ -90,7 +75,7 @@ class ScoreKeeper:
     # interface
     def bankrupt(self, player_id):
         """
-            Bankrupt the given player.
+            Bankrupt the given player for the current round.
             Business rules: player score goes to 0.
 
             Args:
@@ -100,7 +85,9 @@ class ScoreKeeper:
             success: a boolean representing whether the bankrupt call was success or failure
         """
         success = True
-        self.player_points[player_id] = 0
+        if self.player_points_current_round[player_id] > 0:
+            self.player_points[player_id] -= self.player_points_current_round[player_id]
+            self.player_points_current_round[player_id] = 0
         return success
 
     def determine_winner(self):
@@ -140,5 +127,15 @@ class ScoreKeeper:
         """
         if player_correct:
             self.player_points[player_id] += points
+            self.player_points_current_round[player_id] += points
         else:
             self.player_points[player_id] -= points
+            self.player_points_current_round[player_id] -= points
+
+    def new_round(self):
+        """
+        Called when a new round begins.
+        Resets every player's score for the current round (which is tracked separately from overall score) to 0.
+        :return: void
+        """
+        self.player_points_current_round = defaultdict(int)

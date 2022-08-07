@@ -14,7 +14,6 @@ class ExecutiveLogic:
         self.board = Board()  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
         self.wheel = Wheel(["food", "politics"])  # Wheel object (TODO: These categories should be specified somewhere else, right?)
-        self.ui = UserInterface()  # UI Object
         self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
 
         self.is_game_running = True  # True if game is ongoing, False otherwise
@@ -32,6 +31,7 @@ class ExecutiveLogic:
 
         for round_num in [1, 2]:
             self.board.reset_board(round_num)
+            self.score_keeper.new_round()
             self.__execute_round(round_num)
 
         self.__end_game()
@@ -67,7 +67,10 @@ class ExecutiveLogic:
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
-            self.__execute_category(wheel_result, curr_player_id, round_num)
+            is_correct = True
+            while is_correct and self.board.is_category_available(wheel_result, round_num):
+                is_correct = self.__execute_category(wheel_result, curr_player_id, round_num)
+
 
         # If result is another wheel sector, handle logic
         elif wheel_result == Sector.LOSE_TURN:
@@ -90,12 +93,12 @@ class ExecutiveLogic:
 
         elif wheel_result == Sector.PLAYERS_CHOICE:
             self.__query_server(MessageType.PLAYERS_CHOICE, [curr_player_id, round_num])
-            _, [chosen_category] = self.query_response
+            _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.OPPONENTS_CHOICE:
-            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, round_num])
-            _, [chosen_category] = self.query_response
+            self.__query_server(MessageType.OPPONENTS_CHOICE, [curr_player_id, round_num])  # TODO: Have the exec logic pick a random opponent that is not curr_player_id
+            _, [chosen_category] = self.query_response.code, self.query_response.args
             self.__execute_category(chosen_category, curr_player_id, round_num)
 
         elif wheel_result == Sector.SPIN_AGAIN:
@@ -108,7 +111,7 @@ class ExecutiveLogic:
         """
         Controls the flow of a Jeopardy question. Called when a "category" sector is the result of a wheel spin.
         :param jeopardy_category: Name of jeopardy category
-        :return: void
+        :return: is_correct (bool): True if the player's answer was correct, False otherwise
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
         self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, tile])  # Display tile to user, wait for response
@@ -116,6 +119,7 @@ class ExecutiveLogic:
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(player_id, is_correct, points)
         self.__update_scores_tokens_spins()
+        return is_correct
 
     def __end_game(self):
         """
@@ -172,11 +176,11 @@ class ExecutiveLogic:
     def __update_scores_tokens_spins(self):
         """
         Called after a game value is updated that should be reflected in the UI display.
-        Sends server the current player scores, player tokens, and number of spins.
+        Sends server the current player scores, player tokens, and number of spins remaining.
         :return: void
         """
         self.__query_server(MessageType.UPDATE_SCORES,
-                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(), self.num_spins])
+                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(), MAX_SPINS - self.num_spins])
 
     ########
     # TODO: All methods below this point may be deprecated?
