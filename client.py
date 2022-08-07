@@ -174,7 +174,12 @@ class Client(Messenger):
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
             max_index = str(len(prompt_list))
-            selected_index = int(input(f"Enter option number (0-{max_index}): "))
+            user_input = input(f"Enter option number (0-{max_index}): ")
+            try:
+                selected_index = int(user_input)  # in case user inputs non-int value
+            except:
+                selected_index = None  # re-prompt user to enter index
+
 
         print(f"You selected option #{selected_index}")
 
