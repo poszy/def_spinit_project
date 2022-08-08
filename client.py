@@ -5,7 +5,7 @@ import threading
 import logging
 
 from server import Message, QueryStatus, MessageType, Messenger
-from board.questions import Tile
+from board.pull_questions_in import Tile
 
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
@@ -25,7 +25,6 @@ class Client(Messenger):
 
         self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
-        self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
 
     def connect_to_game(self, host, port):
         """
@@ -61,7 +60,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                [player_id, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, jeopardy_category, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Display question (tile.question) and answer choices (tile.answers) to user
                 # TODO (UI): Get back user answer and store in user_answer
@@ -71,7 +70,8 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 # Note: Expecting tile.answers to be a list of strings
-                print("Here's your question:")
+                print(f"Category: {jeopardy_category},  {tile.points} points")
+                print(f"Here's your question:")
                 print(str(tile.question))
                 user_answer = self.__prompt_user_from_list(tile.answers)
                 #### END TEXT INTERFACE ####
@@ -79,7 +79,7 @@ class Client(Messenger):
                 response_info = [user_answer]
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for them to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -90,13 +90,13 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Player's Choice!")
                 print("Select a Jeopardy category:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
 
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -107,10 +107,10 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Opponent's Choice!")
                 print("Select a Jeopardy category for your opponent to answer:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
 
-                response_info = []
+                response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -173,10 +173,14 @@ class Client(Messenger):
         # Ask user to select an option from the list
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
-            max_index = str(len(prompt_list) - 1)
-            selected_index = int(input(f"Enter option number (0-{max_index}): "))
+            max_index = str(len(prompt_list)-1)
+            user_input = input(f"Enter option number (0-{max_index}): ")
+            try:
+                selected_index = int(user_input)  # in case user inputs non-int value
+            except:
+                selected_index = None  # re-prompt user to enter index
 
-        print(f"You selected option #{selected_index}")
+        print(f"You selected option #{selected_index}, {prompt_list[selected_index]}")
 
         return prompt_list[selected_index]
 
