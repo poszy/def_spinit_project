@@ -158,7 +158,9 @@ class ExecutiveLogic:
         :return: Result of wheel spin
         """
         self.num_spins += 1
-        return self.wheel.get_spin_result()
+        spin_result = self.wheel.get_spin_result()
+        self.__query_server(MessageType.SPIN_RESULT, [spin_result])
+        return spin_result
 
     def __query_server(self, command: MessageType, args: list):
         """
