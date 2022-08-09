@@ -31,7 +31,7 @@ class Questions:
 
     # default constructor
     def __init__(self):
-        politics_tiles = {100: Tile('politics question 1', ['a', 'b', 'c'], 2, 100),
+        politics_tiles = {100: Tile('What are two rights of everyone living in the United States?', ['A. Freedom to petition the government and freedom to disobey traffic laws', 'B. Freedom of worship and freedom to make treaties with other countries', 'c. Freedom of speech and freedom to run for president'], 2, 100),
                           200: Tile('politics question 3', ['a', 'b', 'c'], 2, 200),
                           400: Tile('politics question 3', ['a', 'b', 'c'], 2, 400),
                           800: Tile('politics question 4', ['a', 'b', 'c'], 2, 800)
@@ -116,9 +116,9 @@ class Questions:
         else:
             raise Exception(f"Round number %s is not a valid round in questions.py!", str(round))
 
-# a = Questions()
-# a.check_question("politics")
-# a.get_tile("politics")
+#a = Questions()
+#a.check_question("politics")
+#a.get_tile("politics", 1)
 # a.get_tile("politics")
 # a.get_tile("politics")
 # a.get_tile("politics")

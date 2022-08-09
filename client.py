@@ -3,9 +3,12 @@ from ui.user_interface import UserInterface
 import socket
 import threading
 import logging
-
+from tkinter import *
+from tkinter import ttk
 from server import Message, QueryStatus, MessageType, Messenger
 from board.questions import Tile
+from ui import s
+from tkinter.messagebox import showinfo
 
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
@@ -20,22 +23,154 @@ class Client(Messenger):
 
     # default constructor
     def __init__(self):
+
         self.player_id = None
         self.game_over = False
+        self.SRV_IP = 'localhost'
+        self.SRV_PORT = 5555
 
-        self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
+        #self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
         self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
+        self.strl = s.S()
+
+        """
+        CREATE ROOT FRAME
+        """
+        # Start Window Manager
+        self.root = Tk()
+
+
+        #self.gameplayer.connect_to_game(SRV_IP, SRV_PORT)
+
+
+        # Set default size of window
+        self.root.geometry(self.strl.window_dimensions)
+        self.root.title(self.strl.lobby_title_bar)
+        self.s = ttk.Style()
+        self.s.configure('new.TFrame', background='#7AC5CD')
+
+
+
+        """
+        CREATE TOP FRAME
+        """
+        self.frame_top=ttk.Frame(self.root, style='new.TFrame')
+        #Every Frame should have these global labels
+        self.lbl_round=ttk.Label(self.frame_top,text=self.strl.main_lbl_current_round, padding="10", width="20")
+        self.lbl_round.pack(side=LEFT)
+
+        self.lbl_score=ttk.Label(self.frame_top,text=self.strl.main_lbl_current_score, padding="10", width="20")
+        self.lbl_score.pack(side=LEFT)
+
+        self.lbl_turn=ttk.Label(self.frame_top,text=self.strl.main_lbl_current_turn, padding="10", width="20")
+        self.lbl_turn.pack(side=LEFT)
+
+        self.lbl_token=ttk.Label(self.frame_top,text=self.strl.main_lbl_current_tokens, padding="10", width="20")
+        self.lbl_token.pack(side=LEFT)
+
+        #Place the top frame
+        self.frame_top.pack()
+
+        self.style = ttk.Style()
+        self.style.layout('TNotebook.Tab', []) # turn off tabs
+
+        # Create Notebook in Root Frame
+        # This will carkry our pagination
+        self.note = ttk.Notebook(self.root)
+
+
+        """
+        CREATE SUB FRAMES
+        """
+        self.f1 = ttk.Frame(self.note)
+        self.lbl_player_wait=ttk.Label(self.f1, text='It is currently your turn, click the button below to spin the wheel.  ', padding="10", width="300")
+        self.lbl_player_wait.pack(side=TOP)
+
+        # Add Frame to Notebook. This is the Lobby Frame
+        self.note.add(self.f1)
+
+
+        # Create Wheel Frame
+        self.f2 = ttk.Frame(self.note)
+
+        # Add Frame to Notebook
+        self.note.add(self.f2)
+        self.note.pack(expand=1, fill='both', padx=5, pady=5)
+        self.catagory_selected = StringVar()
+
+        ## initial menu text
+        self.catagory_selected.set( "Choose Catagory" )
+        # Create Dropdown menu
+        self.drp_menu_catagory_selection = OptionMenu( self.f2 , self.catagory_selected , "Delicious Bytes", "String Theory", "Logic Games", "So Random" )
+        self.drp_menu_catagory_selection.pack()
+        # Create button, it will change label text
+
+
+        #self.btn_choose_catagory = Button( self.f2 , text = "Choose Catagory" , command = self.submit_catagory(self.cc).pack())
+        self.btn_choose_catagory = Button( self.f2 , text = "Choose Catagory" ).pack()
+
+        # Create Select Catagory Label
+        self.lbl_selected_catagory = Label( self.f2 , text = " " )
+        self.lbl_selected_catagory.pack()
+
+
+        # Create Question Frame
+        self.f3 = ttk.Frame(self.note)
+
+        # Add Frame to Notebook
+        self.note.add(self.f3)
+        self.note.pack(expand=2, fill='both', padx=5, pady=5)
+
+        # Wait for Client to send turn singal, for now it is initiated by button
+        self.btn_play = ttk.Button(self.f1,text="Connect to Game", command=self.load_spin_frame)
+        self.btn_play.pack( side = BOTTOM, padx=50)
+
+
+
+
+        """
+        CREATE BOTTOM FRAME
+        """
+        self.frame_bottom=ttk.Frame(self.root, style='new.TFrame')
+
+        #Every Frame should have these global labels
+        self.lbl_info=ttk.Label(self.frame_bottom,text='Informational Pannel:  ', padding="10", width="20")
+        self.lbl_info.pack()
+
+
+        #Place the top frame
+        self.frame_bottom.pack(side=BOTTOM)
+
+        #self.root.after(3000, self.load_lobby_frame)
+        self.root.mainloop()
+        #self.root.after(3000, self.load_lobby_frame)
+
+    # Helper function
+    def load_lobby_frame(self):
+        self.note.select(0)
+    def load_spin_frame(self):
+
+        self.note.select(1)
+        self.connect_to_game(self.SRV_IP, self.SRV_PORT)
+
+    def load_question_frame(self):
+        cc = self.catagory_selected.get()
+        self.send_command(self.server, Message(MessageType.SPIN, cc))
+        self.note.select(2)
+
+
 
     def connect_to_game(self, host, port):
         """
         Connects client to a game server. Called once, before the beginning of the game.
         Spawns new thread for handle_connection.
         """
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
-        server.connect((host, port))
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
+        self.server.connect((host, port))
         logging.info("Connecting to the game server")
-        threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
+        threading.Thread(target=self.handle_connection, args=(self.server,)).start()  # start threading immediately
 
     def handle_connection(self, server):
         """
@@ -72,11 +207,61 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 # Note: Expecting tile.answers to be a list of strings
                 print("Here's your question:")
+                a = str(tile.question)
+
+                self.lbl_player_question=ttk.Label(self.f3, text=a, padding="10", width="300")
+                self.lbl_player_question.pack(side=TOP)
                 print(str(tile.question))
-                user_answer = self.__prompt_user_from_list(tile.answers)
+                an = tile.answers
+                #aAnswers_split = an.split(',')
+
+                choice = ((an[0], 0),
+                (an[1], 1),
+                (an[2], 2))
+
+                self.gAnswers = StringVar()
+                self.aAnswers = an[2]
+                ## radio buttons
+                for c in choice:
+                    i = 0
+                    r = ttk.Radiobutton(
+                        self.f3,
+                        text=c[i],
+                        value=c,
+                        variable=self.gAnswers,
+
+                    )
+                    i = i + i
+
+                    r.pack(side = TOP)
+
+                b = self.gAnswers.get()
+                print(b)
+                ## Submit button
+                btn_submit = ttk.Button(
+                    self.f3,
+                    text=self.strl.question_btn_submit,
+                    command = self.show_submit_answer
+                    )
+                btn_submit.pack( side = BOTTOM, )
+                #b = self.gAnswers.get()
+                #c = b[-1]
+                #response_info = [c]
+
+
+                #user_answer =  self.__prompt_user_from_list(tile.answers)
+                #user_answer = self.__prompt_user_from_list(tile.answers)
+                #print(user_answer)
+                #response_info = [user_answer]
+                #print(response_info)
+                #print(parsed_message.code)
+                #self.send_command(server, Message(parsed_message.code, response_info))
+
+
                 #### END TEXT INTERFACE ####
 
-                response_info = [user_answer]
+
+
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -120,10 +305,13 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("Spin the wheel!")
-                input("Press enter to spin the wheel")
+                #self.root.bind('<Return>', self.handle_connection)
+                #input("Press enter to spin the wheel")
                 #### END TEXT INTERFACE ####
+                self.btn_spin = ttk.Button(self.f2,text="Pass to question frame", command=self.load_question_frame)
+                self.btn_spin.pack( side = BOTTOM, padx=50)
 
-                response_info = []
+                #response_info = []
 
             elif parsed_message.code == MessageType.END_GAME:
                 [winner_player_id] = parsed_message.args
@@ -155,11 +343,14 @@ class Client(Messenger):
                 #### END TEXT INTERFACE ####
 
                 response_info = []
+                self.send_command(server, Message(parsed_message.code, response_info))
+                #self.note.select(1)
+
 
             else:
                 raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
 
-            self.send_command(server, Message(parsed_message.code, response_info))
+            #self.send_command(server, Message(parsed_message.code, response_info))
 
     def __prompt_user_from_list(self, prompt_list: list):
         """
@@ -222,6 +413,26 @@ class Client(Messenger):
     def notify_spin(self):
         pass
 
+    def show_submit_answer(self):
+        #print(self.gAnswers.get())
+
+        #print(self.gAnswers)
+        #print(self.aAnswers)
+        b = self.gAnswers.get()
+        c = b[-1]
+        f = int(c)
+
+
+        #if self.gAnswers.get() == self.aAnswers:
+            #showinfo(title=self.strl.question_show_info_correct_answer, message=self.gAnswers.get())
+        #else:
+            #showinfo(title=self.strl.question_show_info_wrong_answer, message=self.gAnswers.get())
+
+        response_info = [c]
+        #return response_info
+        print(response_info)
+        self.send_command(self.server, Message(MessageType.JEOPARDY_QUESTION, response_info))
+        return
 
 gameplayer = Client()
 gameplayer.connect_to_game(SRV_IP, SRV_PORT)
