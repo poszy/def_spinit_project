@@ -14,6 +14,7 @@ BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
 
 logging.basicConfig(level=logging.INFO)
+logging.disable(level=logging.INFO)  # Disable logging for demo
 
 
 class Client(Messenger):
@@ -74,6 +75,11 @@ class Client(Messenger):
                 print(f"Here's your question:")
                 print(str(tile.question))
                 user_answer = self.__prompt_user_from_list(tile.answers)
+
+                if user_answer == tile.r_answer:
+                    print(f"Correct!")
+                else:
+                    print(f"That's wrong!")
                 #### END TEXT INTERFACE ####
 
                 response_info = [user_answer]
@@ -152,6 +158,18 @@ class Client(Messenger):
                 for player_id in scores_dict:
                     print(f"Player {player_id}: {scores_dict[player_id]} points | {tokens_dict[player_id]} tokens")
                 print("")
+                #### END TEXT INTERFACE ####
+
+                response_info = []
+
+            elif parsed_message.code == MessageType.SPIN_RESULT:
+                [spin_result] = parsed_message.args
+
+                # TODO (UI): Update the UI to display the result of the previous spin
+                # TODO (UI): Delete text interface code below
+
+                ### BEGIN TEXT INTERFACE ###
+                print(f"You Spun: {spin_result}\n")
                 #### END TEXT INTERFACE ####
 
                 response_info = []
