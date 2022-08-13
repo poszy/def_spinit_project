@@ -7,13 +7,22 @@ from enum import Enum
 import time
 import logging
 
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog as fd
+from tkinter.messagebox import showinfo
+
 MAX_SPINS = 50
 NUM_ROUNDS = 2
+DEFAULT_QUESTIONS_FILE = 'board/JArchive-questions.csv'  # need to use relative path from current working directory of main.py!
 
 
 class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
-        self.board = Board()  # Board object
+        configuration = ConfigWindow()
+        if not configuration.filename: # in case did not select a file
+            onfiguration.filename = 'board/JArchive-questions.csv'  # need to use relative path from current working directory of main.py!
+        self.board = Board(configuration.filename)  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
         self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
         # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
@@ -224,3 +233,60 @@ class ExecutiveLogic:
 
     def select_rand_opponent(self):
         return "Opponent"
+
+
+class ConfigWindow():
+    def __init__(self):
+        root = self.__setup_window()
+        # open button
+        open_button = ttk.Button(
+            root,
+            text='Select a Question File',
+            command=self.select_file
+        )
+        self.filename = ""
+        open_button.pack(expand=True)
+
+        # run the application
+        root.mainloop()
+        pass
+
+    def __setup_window(self):
+        root = tk.Tk()
+        root.resizable(False, False)
+
+        window_width = 300
+        window_height = 200
+
+        config_window_title = "Wheel of Jeopardy: Game Configuration"
+        root.title(config_window_title)
+
+        # Center the window
+        # get the screen dimension
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+
+        # find the center point
+        center_x = int(screen_width / 2 - window_width / 2)
+        center_y = int(screen_height / 2 - window_height / 2)
+
+        # set the position of the window to the center of the screen
+        root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+        return root
+
+    def select_file(self):
+        filetypes = (
+            ('CSV files', '*.csv'),
+            # ('All files', '*.*')
+        )
+
+        self.filename = fd.askopenfilename(
+            title='Open a file',
+            initialdir='.',
+            filetypes=filetypes)
+
+        showinfo(
+            title='Selected File',
+            message=self.filename
+        )
+
