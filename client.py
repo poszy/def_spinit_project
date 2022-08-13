@@ -98,22 +98,22 @@ class Client(Messenger):
         # Add Frame to Notebook
         self.note.add(self.f2)
         self.note.pack(expand=1, fill='both', padx=5, pady=5)
-        self.catagory_selected = StringVar()
+        self.category_selected = StringVar()
 
         ## initial menu text
-        self.catagory_selected.set( "Choose Catagory" )
+        self.category_selected.set( "Choose category" )
         # Create Dropdown menu
-        self.drp_menu_catagory_selection = OptionMenu( self.f2 , self.catagory_selected , "Delicious Bytes", "String Theory", "Logic Games", "So Random" )
-        self.drp_menu_catagory_selection.pack()
+        self.drp_menu_category_selection = OptionMenu( self.f2 , self.category_selected , "Delicious Bytes", "String Theory", "Logic Games", "So Random" )
+        self.drp_menu_category_selection.pack()
         # Create button, it will change label text
 
 
-        #self.btn_choose_catagory = Button( self.f2 , text = "Choose Catagory" , command = self.submit_catagory(self.cc).pack())
-        self.btn_choose_catagory = Button( self.f2 , text = "Choose Catagory" ).pack()
+        #self.btn_choose_category = Button( self.f2 , text = "Choose category" , command = self.submit_category(self.cc).pack())
+        self.btn_choose_category = Button( self.f2 , text = "Choose category" ).pack()
 
-        # Create Select Catagory Label
-        self.lbl_selected_catagory = Label( self.f2 , text = " " )
-        self.lbl_selected_catagory.pack()
+        # Create Select category Label
+        self.lbl_selected_category = Label( self.f2 , text = " " )
+        self.lbl_selected_category.pack()
 
 
         # Create Question Frame
@@ -156,7 +156,7 @@ class Client(Messenger):
         self.connect_to_game(self.SRV_IP, self.SRV_PORT)
 
     def load_question_frame(self):
-        cc = self.catagory_selected.get()
+        cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
         self.note.select(2)
 
@@ -167,10 +167,10 @@ class Client(Messenger):
         Connects client to a game server. Called once, before the beginning of the game.
         Spawns new thread for handle_connection.
         """
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
-        self.server.connect((host, port))
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
+        server.connect((host, port))
         logging.info("Connecting to the game server")
-        threading.Thread(target=self.handle_connection, args=(self.server,)).start()  # start threading immediately
+        threading.Thread(target=self.handle_connection, args=(server,)).start()  # start threading immediately
 
     def handle_connection(self, server):
         """
@@ -196,7 +196,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                [player_id, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, jeopardy_category, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Display question (tile.question) and answer choices (tile.answers) to user
                 # TODO (UI): Get back user answer and store in user_answer
@@ -260,11 +260,10 @@ class Client(Messenger):
 
                 #### END TEXT INTERFACE ####
 
-
-
+                response_info = [user_answer]
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for them to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -275,13 +274,13 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Player's Choice!")
                 print("Select a Jeopardy category:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
 
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id, round_num] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -292,10 +291,10 @@ class Client(Messenger):
                 ### BEGIN TEXT INTERFACE ###
                 print("Opponent's Choice!")
                 print("Select a Jeopardy category for your opponent to answer:")
-                chosen_category = self.__prompt_user_from_list(self.categories)
+                chosen_category = self.__prompt_user_from_list(open_categories)
                 #### END TEXT INTERFACE ####
 
-                response_info = []
+                response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -311,7 +310,7 @@ class Client(Messenger):
                 self.btn_spin = ttk.Button(self.f2,text="Pass to question frame", command=self.load_question_frame)
                 self.btn_spin.pack( side = BOTTOM, padx=50)
 
-                #response_info = []
+                response_info = []
 
             elif parsed_message.code == MessageType.END_GAME:
                 [winner_player_id] = parsed_message.args
@@ -343,14 +342,23 @@ class Client(Messenger):
                 #### END TEXT INTERFACE ####
 
                 response_info = []
-                self.send_command(server, Message(parsed_message.code, response_info))
-                #self.note.select(1)
 
+            elif parsed_message.code == MessageType.SPIN_RESULT:
+                [spin_result] = parsed_message.args
+
+                # TODO (UI): Update the UI to display the result of the previous spin
+                # TODO (UI): Delete text interface code below
+
+                ### BEGIN TEXT INTERFACE ###
+                print(f"You Spun: {spin_result}\n")
+                #### END TEXT INTERFACE ####
+
+                response_info = []
 
             else:
                 raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
 
-            #self.send_command(server, Message(parsed_message.code, response_info))
+            self.send_command(server, Message(parsed_message.code, response_info))
 
     def __prompt_user_from_list(self, prompt_list: list):
         """
@@ -364,10 +372,14 @@ class Client(Messenger):
         # Ask user to select an option from the list
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
-            max_index = str(len(prompt_list) - 1)
-            selected_index = int(input(f"Enter option number (0-{max_index}): "))
+            max_index = str(len(prompt_list)-1)
+            user_input = input(f"Enter option number (0-{max_index}): ")
+            try:
+                selected_index = int(user_input)  # in case user inputs non-int value
+            except:
+                selected_index = None  # re-prompt user to enter index
 
-        print(f"You selected option #{selected_index}")
+        print(f"You selected option #{selected_index}, {prompt_list[selected_index]}")
 
         return prompt_list[selected_index]
 
