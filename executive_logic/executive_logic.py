@@ -28,6 +28,7 @@ class ExecutiveLogic:
         self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
         # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
         self.ui = UserInterface()  # UI Object
+        logging.info(f"Start server for {configuration.num_players.get()} player(s)")
         self.game_server = GameServer(srv_ip, srv_port, configuration.num_players.get(), self)  # GameServer object
 
         self.is_game_running = True  # True if game is ongoing, False otherwise
@@ -243,49 +244,52 @@ class ExecutiveLogic:
 
 class ConfigWindow():
     def __init__(self):
-        root = self.__setup_window()
-        self.__setup_file_picker(root)
+        win = self.__setup_window()
+        self.__setup_file_picker(win)
 
-        self.__setup_num_player_selector(root)
+        self.__setup_num_player_selector(win)
+
+        close_button = ttk.Button(win, text="Start Game Server", command=win.destroy)
+        close_button.pack(expand=True)
 
         # run the application
-        root.mainloop()
-        pass
+        win.mainloop()
+
 
     def __setup_window(self):
-        root = tk.Tk()
-        root.resizable(False, False)
+        win = tk.Tk()
+        win.resizable(False, False)
 
         window_width = 300
         window_height = 200
 
         config_window_title = "Wheel of Jeopardy: Game Configuration"
-        root.title(config_window_title)
+        win.title(config_window_title)
 
         # Center the window
         # get the screen dimension
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
 
         # find the center point
         center_x = int(screen_width / 2 - window_width / 2)
         center_y = int(screen_height / 2 - window_height / 2)
 
         # set the position of the window to the center of the screen
-        root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-        return root
+        win.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+        return win
 
-    def __setup_file_picker(self, root):
+    def __setup_file_picker(self, win):
         # open button
         open_button = ttk.Button(
-            root,
+            win,
             text='Select a Question File',
             command=self.__select_file
         )
         self.filename = ""
         open_button.pack(expand=True)
 
-    def __setup_num_player_selector(self, root):
+    def __setup_num_player_selector(self, win):
         self.num_players = tk.IntVar()
         players = range(1, MAX_NUM_PLAYERS+1)
 
@@ -296,20 +300,12 @@ class ConfigWindow():
         # radio buttons
         for n in players:
             r = ttk.Radiobutton(
-                root,
+                win,
                 text=n,
                 value=n,
                 variable=self.num_players
             )
             r.pack(fill='x', padx=5, pady=5)
-
-        # button
-        # button = ttk.Button(
-        #     root,
-        #     text="Get Number of Players",
-        #     command=self.__show_num_players)
-        #
-        # button.pack(fill='x', padx=5, pady=5)
 
     def __select_file(self):
         filetypes = (
@@ -330,9 +326,4 @@ class ConfigWindow():
     def __select_num_players(self):
         pass
 
-    # def __show_num_players(self):
-    #     showinfo(
-    #         title='Result',
-    #         message=self.num_players.get()
-    #     )
 
