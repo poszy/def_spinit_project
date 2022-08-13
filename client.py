@@ -123,7 +123,7 @@ class Client(Messenger):
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
-        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.load_spin_frame)
+        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.populate_spin_frame)
         self.btn_play.pack(side=BOTTOM, padx=50)
 
         """
@@ -148,7 +148,7 @@ class Client(Messenger):
         self.label_score_val.set(self.strl.main_lbl_current_score+my_score)
 
         my_tokens = str(tokens[self.player_id])
-        self.label_tokens_val.set(self.strl.main_lbl_current_score+my_tokens)
+        self.label_tokens_val.set(self.strl.main_lbl_current_tokens+my_tokens)
 
     def __clear_frame(self, frame):
         for widget in frame.winfo_children():  # get all the children widgets in the frame
@@ -158,8 +158,13 @@ class Client(Messenger):
         self.note.select(0)
 
     def load_spin_frame(self):
-
         self.note.select(1)
+
+    def populate_spin_frame(self):
+        self.load_spin_frame()
+        #### END TEXT INTERFACE ####
+        self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
+        self.btn_spin.pack(side=BOTTOM, padx=50)
         self.connect_to_game(self.host_ip, self.srv_port)
 
     def send_spin_command(self):
@@ -274,18 +279,7 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-                # TODO (UI): Ask this player to push a button to spin the wheel
-                # TODO (UI): Delete text interface code below
-
-                ### BEGIN TEXT INTERFACE ###
-                print("Spin the wheel!")
-                # self.root.bind('<Return>', self.handle_connection)
-                # input("Press enter to spin the wheel")
-                #### END TEXT INTERFACE ####
-                self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
-                self.btn_spin.pack(side=BOTTOM, padx=50)
-
-                # response_info = [self.category_selected.get()]
+                self.load_spin_frame()
 
 
             elif parsed_message.code == MessageType.END_GAME:
@@ -306,18 +300,10 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.UPDATE_SCORES:
                 [scores_dict, tokens_dict, num_spins_remaining] = parsed_message.args
 
-                # TODO (UI): Update the UI to display the new scores, number of tokens, and number of spins to players
-                # TODO (UI): Delete text interface code below
+                # TODO (UI): Update the UI to display all players' scores and tokens, number of spins
                 self.__update_scores_tokens_spins(scores_dict, tokens_dict, num_spins_remaining)
-                ### BEGIN TEXT INTERFACE ###
-                print("\nUPDATED GAME VALUES:")
-                print(f"Number of Spins Remaining This Round: {num_spins_remaining}")
-                for player_id in scores_dict:
-                    print(f"Player {player_id}: {scores_dict[player_id]} points | {tokens_dict[player_id]} tokens")
-                print("")
-                #### END TEXT INTERFACE ####
-
                 response_info = []
+                self.send_command(self.server, Message(parsed_message.code, response_info))
 
             elif parsed_message.code == MessageType.SPIN_RESULT:
                 [spin_result] = parsed_message.args
@@ -416,7 +402,6 @@ class Client(Messenger):
 
         # clear the screen of the question and answers
         self.__clear_frame(self.question_frame_3)
-        return
 
 
 gameplayer = Client(SRV_IP, SRV_PORT)
