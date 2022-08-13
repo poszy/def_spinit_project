@@ -142,7 +142,7 @@ class GameServer(Messenger):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
         server.bind((self.host_ip, self.port))
         logging.info("server starting a game, listening for players on port: " + str(self.port))
-        server.listen(self.num_players - 1)  # listen for 2 connections. 3 player game  # TODO: Should be 3 players
+        server.listen(self.num_players)  # listen for players to join  # TODO: Should be 3 players
 
         client, addr = server.accept()  # next player connection
 

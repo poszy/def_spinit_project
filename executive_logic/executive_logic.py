@@ -242,7 +242,11 @@ class ExecutiveLogic:
         return "Opponent"
 
 
-class ConfigWindow():
+class ConfigWindow:
+    """
+    Window with configuration options for the game
+
+    """
     def __init__(self):
         win = self.__setup_window()
         self.__setup_file_picker(win)
@@ -257,6 +261,9 @@ class ConfigWindow():
 
 
     def __setup_window(self):
+        """
+        General window setup on the screen
+        """
         win = tk.Tk()
         win.resizable(False, False)
 
@@ -280,6 +287,11 @@ class ConfigWindow():
         return win
 
     def __setup_file_picker(self, win):
+        """
+        Add a button to allow the Game Maker to select a CSV file containing Jeopardy questions
+
+        win: a window object
+        """
         # open button
         open_button = ttk.Button(
             win,
@@ -290,6 +302,10 @@ class ConfigWindow():
         open_button.pack(expand=True)
 
     def __setup_num_player_selector(self, win):
+        """
+        Add radio buttons to allow the Game Maker to select the exact number of players
+        win: a window object
+        """
         self.num_players = tk.IntVar()
         players = range(1, MAX_NUM_PLAYERS+1)
 
@@ -308,6 +324,9 @@ class ConfigWindow():
             r.pack(fill='x', padx=5, pady=5)
 
     def __select_file(self):
+        """
+        Pop-up to select a CSV file
+        """
         filetypes = (
             ('CSV files', '*.csv'),
             # ('All files', '*.*')
@@ -323,7 +342,5 @@ class ConfigWindow():
             message=self.filename
         )
 
-    def __select_num_players(self):
-        pass
 
 
