@@ -23,13 +23,10 @@ class Client(Messenger):
 
     # default constructor
     def __init__(self):
-
         self.player_id = None
         self.game_over = False
-        self.SRV_IP = 'localhost'
-        self.SRV_PORT = 5555
 
-        #self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
+        self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
         self.categories = ["Delicious Bytes", "String Theory", "Logic Games", "So Random"]  # TODO: Should receive Jeopardy board from Server at start of round
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket

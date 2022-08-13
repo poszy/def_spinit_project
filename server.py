@@ -63,9 +63,13 @@ class MessageType(Enum):
     # Request  Args: 	[scores_dict, tokens_dict, num_spins]
     # Response Args:	[]
 
-    # TODO: Add UPDATE_BOARD message, to tell client what the board looks like at the start of the round
+    UPDATE_BOARD = 8  # Called at the start of the round, to tell server/client what the board looks like
+    # Request  Args:    [board]
+    # Response Args:    []
 
-    # TODO: Add SPIN_RESULT message, to tell client the result of the latest spin
+    SPIN_RESULT = 9  # Called to tell server/client what the result of the latest spin was
+    # Request  Args:    [sector_result]
+    # Response Args:    []
 
 
 
