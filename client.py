@@ -49,17 +49,26 @@ class Client(Messenger):
         """
         self.frame_top = ttk.Frame(self.root, style='new.TFrame')
         # Every Frame should have these global labels
-        self.lbl_round = ttk.Label(self.frame_top, text=self.strl.main_lbl_current_round, padding="10", width="20")
-        self.lbl_round.pack(side=LEFT)
+        self.label_round_val = StringVar()
+        lbl_round = ttk.Label(self.frame_top, textvariable=self.label_round_val, padding="10", width="20")
+        lbl_round.pack(side=LEFT)
+        self.label_round_val.set(self.strl.main_lbl_current_round+"0")
 
-        self.lbl_score = ttk.Label(self.frame_top, text=self.strl.main_lbl_current_score, padding="10", width="20")
-        self.lbl_score.pack(side=LEFT)
+        self.label_score_val = StringVar()
+        lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
+        lbl_score.pack(side=LEFT)
+        self.label_score_val.set(self.strl.main_lbl_current_score + "0")
 
-        self.lbl_turn = ttk.Label(self.frame_top, text=self.strl.main_lbl_current_turn, padding="10", width="20")
-        self.lbl_turn.pack(side=LEFT)
+        self.label_current_turn_val = StringVar()
+        lbl_turn = ttk.Label(self.frame_top, textvariable=self.label_current_turn_val, padding="10", width="20")
+        lbl_turn.pack(side=LEFT)
+        self.label_current_turn_val.set(self.strl.main_lbl_current_turn + "0")
 
-        self.lbl_token = ttk.Label(self.frame_top, text=self.strl.main_lbl_current_tokens, padding="10", width="20")
-        self.lbl_token.pack(side=LEFT)
+        self.label_tokens_val = StringVar()
+        lbl_token = ttk.Label(self.frame_top, textvariable=self.label_tokens_val, padding="10", width="20")
+        lbl_token.pack(side=LEFT)
+        self.label_tokens_val.set(self.strl.main_lbl_current_tokens+"0")
+
 
         # Place the top frame
         self.frame_top.pack()
@@ -74,47 +83,47 @@ class Client(Messenger):
         """
         CREATE SUB FRAMES
         """
-        self.f1 = ttk.Frame(self.note)
-        self.lbl_player_wait = ttk.Label(self.f1,
+        self.lobby_frame_1 = ttk.Frame(self.note)
+        self.lbl_player_wait = ttk.Label(self.lobby_frame_1,
                                          text='It is currently your turn, click the button below to spin the wheel.  ',
                                          padding="10", width="300")
         self.lbl_player_wait.pack(side=TOP)
 
         # Add Frame to Notebook. This is the Lobby Frame
-        self.note.add(self.f1)
+        self.note.add(self.lobby_frame_1)
 
         # Create Wheel Frame
-        self.f2 = ttk.Frame(self.note)
+        self.wheel_frame_2 = ttk.Frame(self.note)
 
         # Add Frame to Notebook
-        self.note.add(self.f2)
+        self.note.add(self.wheel_frame_2)
         self.note.pack(expand=1, fill='both', padx=5, pady=5)
         self.category_selected = StringVar()
 
         ## initial menu text
         self.category_selected.set("Choose category")
         # Create Dropdown menu
-        self.drp_menu_category_selection = OptionMenu(self.f2, self.category_selected, "Delicious Bytes",
+        self.drp_menu_category_selection = OptionMenu(self.wheel_frame_2, self.category_selected, "Delicious Bytes",
                                                       "String Theory", "Logic Games", "So Random")
         self.drp_menu_category_selection.pack()
         # Create button, it will change label text
 
-        # self.btn_choose_category = Button( self.f2 , text = "Choose category" , command = self.submit_category(self.cc).pack())
-        self.btn_choose_category = Button(self.f2, text="Choose category").pack()
+        # self.btn_choose_category = Button( self.wheel_frame_2 , text = "Choose category" , command = self.submit_category(self.cc).pack())
+        self.btn_choose_category = Button(self.wheel_frame_2, text="Choose category").pack()
 
         # Create Select category Label
-        self.lbl_selected_category = Label(self.f2, text=" ")
+        self.lbl_selected_category = Label(self.wheel_frame_2, text=" ")
         self.lbl_selected_category.pack()
 
         # Create Question Frame
-        self.f3 = ttk.Frame(self.note)
+        self.question_frame_3 = ttk.Frame(self.note)
 
         # Add Frame to Notebook
-        self.note.add(self.f3)
+        self.note.add(self.question_frame_3)
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
-        self.btn_play = ttk.Button(self.f1, text="Connect to Game", command=self.load_spin_frame)
+        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.load_spin_frame)
         self.btn_play.pack(side=BOTTOM, padx=50)
 
         """
@@ -134,6 +143,17 @@ class Client(Messenger):
         # self.root.after(3000, self.load_lobby_frame)
 
     # Helper function
+    def __update_scores_tokens_spins(self, scores, tokens, spins):
+        my_score = str(scores[self.player_id])
+        self.label_score_val.set(self.strl.main_lbl_current_score+my_score)
+
+        my_tokens = str(tokens[self.player_id])
+        self.label_tokens_val.set(self.strl.main_lbl_current_score+my_tokens)
+
+    def __clear_frame(self, frame):
+        for widget in frame.winfo_children():  # get all the children widgets in the frame
+            widget.destroy()
+
     def load_lobby_frame(self):
         self.note.select(0)
 
@@ -186,9 +206,9 @@ class Client(Messenger):
 
                 a = str(tile.question)
 
-                lbl_category = ttk.Label(self.f3, text=f"Category: {jeopardy_category}", padding="10", width="300")
+                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10", width="300")
 
-                lbl_player_question = ttk.Label(self.f3, text=a, padding="10", width="300")
+                lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
                 lbl_player_question.pack(side=TOP)
                 print(str(tile.question))
                 an = tile.answers
@@ -198,7 +218,7 @@ class Client(Messenger):
                 ## radio buttons
                 for c in tile.answers:
                     r = ttk.Radiobutton(
-                        self.f3,
+                        self.question_frame_3,
                         text=c,
                         value=c,
                         variable=self.gAnswers,
@@ -208,7 +228,7 @@ class Client(Messenger):
 
                 ## Submit button
                 btn_submit = ttk.Button(
-                    self.f3,
+                    self.question_frame_3,
                     text=self.strl.question_btn_submit,
                     command=self.submit_answer
                 )
@@ -262,7 +282,7 @@ class Client(Messenger):
                 # self.root.bind('<Return>', self.handle_connection)
                 # input("Press enter to spin the wheel")
                 #### END TEXT INTERFACE ####
-                self.btn_spin = ttk.Button(self.f2, text="Spin the Wheel", command=self.send_spin_command)
+                self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
                 self.btn_spin.pack(side=BOTTOM, padx=50)
 
                 # response_info = [self.category_selected.get()]
@@ -288,7 +308,7 @@ class Client(Messenger):
 
                 # TODO (UI): Update the UI to display the new scores, number of tokens, and number of spins to players
                 # TODO (UI): Delete text interface code below
-
+                self.__update_scores_tokens_spins(scores_dict, tokens_dict, num_spins_remaining)
                 ### BEGIN TEXT INTERFACE ###
                 print("\nUPDATED GAME VALUES:")
                 print(f"Number of Spins Remaining This Round: {num_spins_remaining}")
@@ -394,7 +414,8 @@ class Client(Messenger):
         print(response_info)
         self.send_command(self.server, Message(MessageType.JEOPARDY_QUESTION, response_info))
 
-        # now go to the next screen
+        # clear the screen of the question and answers
+        self.__clear_frame(self.question_frame_3)
         return
 
 

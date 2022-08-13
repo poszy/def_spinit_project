@@ -4,12 +4,12 @@ class S:
         # Global Strings
         self.title_bar ="Wheel of Jeopardy"
         self.window_dimensions = "1000x1200"
-        self.main_lbl_current_round="Current Round: 1"
-        self.main_lbl_current_score="Your Score: 0 "
+        self.main_lbl_current_round="Current Round: "
+        self.main_lbl_current_score="Your Score:  "
         self.main_lbl_actual_score=0
-        self.main_lbl_current_turn="Current Turn: Player 0"
+        self.main_lbl_current_turn="Current Turn: Player "
         self.main_lbl_actual_turn="Player 0"
-        self.main_lbl_current_tokens=" Free Pass Tokens: 0 "
+        self.main_lbl_current_tokens=" Free Pass Tokens:  "
 
 
         # Lobby Strings
