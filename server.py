@@ -12,7 +12,6 @@ HEADER_SIZE = 10
 
 # pickling and buffering : https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
 
-NUM_PLAYERS = 3
 MAX_SPINS = 3
 BYTE_ENCODING = 'utf-8'
 
@@ -72,7 +71,6 @@ class MessageType(Enum):
     # Response Args:    []
 
 
-
 class Message:
     def __init__(self, code: MessageType, args: list):
         self.code = code
@@ -123,7 +121,7 @@ class Messenger:
 class GameServer(Messenger):
 
     # default constructor
-    def __init__(self, srv_ip, srv_port, executive_logic):
+    def __init__(self, srv_ip, srv_port, num_players, executive_logic):
         super().__init__(srv_ip, srv_port)
         self.host_ip = srv_ip
         self.port = srv_port
@@ -132,6 +130,7 @@ class GameServer(Messenger):
         self.whose_turn = 1  # pointer to current player taking turn
         self.game_over = False
 
+        self.num_players = num_players
         self.next_player_id = 0
         self.players = []  # keep track of players
 
@@ -143,7 +142,7 @@ class GameServer(Messenger):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
         server.bind((self.host_ip, self.port))
         logging.info("server starting a game, listening for players on port: " + str(self.port))
-        server.listen(NUM_PLAYERS - 1)  # listen for 2 connections. 3 player game  # TODO: Should be 3 players
+        server.listen(self.num_players)  # listen for players to join  # TODO: Should be 3 players
 
         client, addr = server.accept()  # next player connection
 

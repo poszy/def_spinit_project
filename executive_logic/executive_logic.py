@@ -7,18 +7,29 @@ from enum import Enum
 import time
 import logging
 
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog as fd
+from tkinter.messagebox import showinfo
+
 MAX_SPINS = 50
 NUM_ROUNDS = 2
+MAX_NUM_PLAYERS = 3
+DEFAULT_QUESTIONS_FILE = './JArchive-questions.csv'  # need to use relative path from current working directory of main.py!
 
 
 class ExecutiveLogic:
     def __init__(self, srv_ip, srv_port):
-        self.board = Board()  # Board object
+        configuration = ConfigWindow()
+        if not configuration.filename:  # in case did not select a file
+            configuration.filename = DEFAULT_QUESTIONS_FILE  # need to use relative path from current working directory of main.py!
+        self.board = Board(configuration.filename)  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
         self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
         # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
         self.ui = UserInterface()  # UI Object
-        self.game_server = GameServer(srv_ip, srv_port, self)  # GameServer object
+        logging.info(f"Start server for {configuration.num_players.get()} player(s)")
+        self.game_server = GameServer(srv_ip, srv_port, configuration.num_players.get(), self)  # GameServer object
 
         self.is_game_running = True  # True if game is ongoing, False otherwise
         self.num_spins = 0  # Number of times wheel has been spun this round (round ends after MAX_SPINS)
@@ -53,7 +64,8 @@ class ExecutiveLogic:
         while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):
             curr_player_id = self.__next_player(curr_player_id)
             # self.__query_server(MessageType.UPDATE_BOARD, [self.board]) TODO
-            self.__query_server(MessageType.SPIN, [curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
+            self.__query_server(MessageType.SPIN, [
+                curr_player_id])  # Notify player that it's their turn,  ask them to push a button to spin the wheel, and wait for their response
             self.__execute_turn(curr_player_id, round_num)
 
     def __execute_turn(self, curr_player_id, round_num):
@@ -72,10 +84,12 @@ class ExecutiveLogic:
 
         # If result is a Jeopardy category, call execute_category
         if self.wheel.is_jeopardy_category(wheel_result):
-            if not self.board.is_category_available(wheel_result, round_num): # If category has no more questions, spin again
+            if not self.board.is_category_available(wheel_result,
+                                                    round_num):  # If category has no more questions, spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
             else:
-                is_correct = self.__execute_category(wheel_result, curr_player_id, round_num)  # Ask player Jeopardy question
+                is_correct = self.__execute_category(wheel_result, curr_player_id,
+                                                     round_num)  # Ask player Jeopardy question
                 if is_correct:  # If playeris correct, they spin again
                     self.__execute_turn(curr_player_id, round_num)  # Spin again
 
@@ -126,7 +140,8 @@ class ExecutiveLogic:
         :return: is_correct (bool): True if the player's answer was correct, False otherwise
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
-        self.__query_server(MessageType.JEOPARDY_QUESTION, [player_id, jeopardy_category, tile])  # Display tile to user, wait for response
+        self.__query_server(MessageType.JEOPARDY_QUESTION,
+                            [player_id, jeopardy_category, tile])  # Display tile to user, wait for response
         _, [user_answer] = self.query_response.code, self.query_response.args
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(player_id, is_correct, points)
@@ -198,7 +213,8 @@ class ExecutiveLogic:
         :return: void
         """
         self.__query_server(MessageType.UPDATE_SCORES,
-                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(), MAX_SPINS - self.num_spins])
+                            [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
+                             MAX_SPINS - self.num_spins])
 
     ########
     # TODO: All methods below this point may be deprecated?
@@ -224,3 +240,107 @@ class ExecutiveLogic:
 
     def select_rand_opponent(self):
         return "Opponent"
+
+
+class ConfigWindow:
+    """
+    Window with configuration options for the game
+
+    """
+    def __init__(self):
+        win = self.__setup_window()
+        self.__setup_file_picker(win)
+
+        self.__setup_num_player_selector(win)
+
+        close_button = ttk.Button(win, text="Start Game Server", command=win.destroy)
+        close_button.pack(expand=True)
+
+        # run the application
+        win.mainloop()
+
+
+    def __setup_window(self):
+        """
+        General window setup on the screen
+        """
+        win = tk.Tk()
+        win.resizable(False, False)
+
+        window_width = 300
+        window_height = 200
+
+        config_window_title = "Wheel of Jeopardy: Game Configuration"
+        win.title(config_window_title)
+
+        # Center the window
+        # get the screen dimension
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+
+        # find the center point
+        center_x = int(screen_width / 2 - window_width / 2)
+        center_y = int(screen_height / 2 - window_height / 2)
+
+        # set the position of the window to the center of the screen
+        win.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+        return win
+
+    def __setup_file_picker(self, win):
+        """
+        Add a button to allow the Game Maker to select a CSV file containing Jeopardy questions
+
+        win: a window object
+        """
+        # open button
+        open_button = ttk.Button(
+            win,
+            text='Select a Question File',
+            command=self.__select_file
+        )
+        self.filename = ""
+        open_button.pack(expand=True)
+
+    def __setup_num_player_selector(self, win):
+        """
+        Add radio buttons to allow the Game Maker to select the exact number of players
+        win: a window object
+        """
+        self.num_players = tk.IntVar()
+        players = range(1, MAX_NUM_PLAYERS+1)
+
+        # label
+        label = ttk.Label(text="Number of players?")
+        label.pack(fill='x', padx=5, pady=5)
+
+        # radio buttons
+        for n in players:
+            r = ttk.Radiobutton(
+                win,
+                text=n,
+                value=n,
+                variable=self.num_players
+            )
+            r.pack(fill='x', padx=5, pady=5)
+
+    def __select_file(self):
+        """
+        Pop-up to select a CSV file
+        """
+        filetypes = (
+            ('CSV files', '*.csv'),
+            # ('All files', '*.*')
+        )
+
+        self.filename = fd.askopenfilename(
+            title='Open a file',
+            initialdir='.',
+            filetypes=filetypes)
+
+        showinfo(
+            title='Selected File',
+            message=self.filename
+        )
+
+
+
