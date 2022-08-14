@@ -3,9 +3,8 @@ from score_keeper.score_keeper import ScoreKeeper
 from ui.user_interface import UserInterface
 from wheel.wheel import Wheel, Sector
 from server import GameServer, QueryStatus, Message, MessageType
-from enum import Enum
-import time
 import logging
+import random
 
 import tkinter as tk
 from tkinter import ttk
@@ -44,6 +43,8 @@ class ExecutiveLogic:
         :return:
         """
         self.is_game_running = True
+        for player_id in self.game_server.players:
+            self.score_keeper.initialize_player(player_id)
 
         for round_num in range(0, NUM_ROUNDS):
             self.board.reset_board(round_num)
@@ -72,7 +73,6 @@ class ExecutiveLogic:
         :param curr_player_id: ID of player whose turn is starting
         :return: void
         """
-
         # Wait for player to confirm spin
         self.__query_server(curr_player_id, MessageType.SPIN, [])
 
@@ -89,7 +89,7 @@ class ExecutiveLogic:
             else:
                 is_correct = self.__execute_category(wheel_result, curr_player_id,
                                                      round_num)  # Ask player Jeopardy question
-                if is_correct:  # If playeris correct, they spin again
+                if is_correct:  # If player is correct, they spin again
                     self.__execute_turn(curr_player_id, round_num)  # Spin again
 
         # If result is another wheel sector, handle logic
@@ -115,20 +115,27 @@ class ExecutiveLogic:
             open_categories = self.board.get_available_categories(round_num)
             self.__query_server(curr_player_id, MessageType.PLAYERS_CHOICE, [open_categories])
             _, [chosen_category] = self.query_response.code, self.query_response.args
-            self.__execute_category(chosen_category, curr_player_id, round_num)
+
+            is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
+            if is_correct:  # If player is correct, they spin again
+                self.__execute_turn(curr_player_id, round_num)  # Spin again
+
 
         elif wheel_result == Sector.OPPONENTS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
-            # TODO: Have the exec logic pick a random opponent that is not curr_player_id
-            self.__query_server(curr_player_id, MessageType.OPPONENTS_CHOICE, [open_categories]) # TODO: Not curr_player_id
+            random_opponent_id = self.__select_rand_opponent(curr_player_id)
+            self.__query_server(random_opponent_id, MessageType.OPPONENTS_CHOICE, [open_categories])
             _, [chosen_category] = self.query_response.code, self.query_response.args
-            self.__execute_category(chosen_category, curr_player_id, round_num)
+
+            is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
+            if is_correct:  # If player is correct, they spin again
+                self.__execute_turn(curr_player_id, round_num)  # Spin again
 
         elif wheel_result == Sector.SPIN_AGAIN:
             self.__execute_turn(curr_player_id, round_num)  # Spin again
 
         else:
-            raise Exception("Wheel result '" + wheel_result + "' is not a valid wheel category!")
+            raise Exception("Wheel result '" + str(wheel_result) + "' is not a valid wheel category!")
 
     def __execute_category(self, jeopardy_category, curr_player_id, round_num):
         """
@@ -225,8 +232,16 @@ class ExecutiveLogic:
         for player_id in self.game_server.players:
             self.__query_server(player_id, command, args)
 
-    def __select_rand_opponent(self):  # TODO: Implement
-        return "Opponent"
+    def __select_rand_opponent(self, curr_player_id):
+        opponent_ids = []
+        for player_id in self.game_server.players:
+            if player_id != curr_player_id:
+                opponent_ids.append(player_id)
+
+        if len(opponent_ids) == 0:
+            return curr_player_id  # Return current player in single-player game
+        else:
+            return random.choice(opponent_ids)  # Otherwise, return a random opponent that isn't the current player
 
 
 class ConfigWindow:
