@@ -9,15 +9,6 @@ from server import Message, QueryStatus, MessageType, Messenger
 from ui import s
 from tkinter.messagebox import showinfo
 
-
-
-
-import random
-import time
-import tkinter
-from PIL import Image, ImageTk
-
-
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
 SRV_PORT = 5555
@@ -146,14 +137,10 @@ class Client(Messenger):
 
         # Place the top frame
         self.frame_bottom.pack(side=BOTTOM)
-        self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.draw)
-        self.btn_spin.pack(side=BOTTOM, padx=50)
-
 
         # self.root.after(3000, self.load_lobby_frame)
         self.root.mainloop()
         # self.root.after(3000, self.load_lobby_frame)
-
 
     # Helper function
     def __update_scores_tokens_spins(self, scores, tokens, spins):
@@ -173,33 +160,14 @@ class Client(Messenger):
     def load_spin_frame(self):
         self.note.select(1)
 
-        self.filename = 'ui/bitmap.png'
-        self.canvas = tkinter.Canvas(self.wheel_frame_2, width=1000, height=1200)
-        self.canvas.pack()
-        #self.img = ImageTk.PhotoImage(Image.open("pointer.png"))
-
-        # Create a Label Widget to display the text or Image
-        self.label = ttk.Label(self.wheel_frame_2, text="^",)
-        #self.btn_choose_category = ttk.Button(self.master, text="spin wheel", command=self.draw).pack()
-        self.label.pack(side = "top")
-
-        self.process_next_frame = self.draw().__next__  # Using "next(self.draw())" doesn't work
-        self.iterations = [24,60,96,120,156,180,216,240,276,300,336,360]
-        self.wheel_frame_2.after(3, self.process_next_frame)
-
-
-
-
-
     def populate_spin_frame(self):
         self.load_spin_frame()
         #### END TEXT INTERFACE ####
-
-
-        #self.connect_to_game(self.host_ip, self.srv_port)
+        self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
+        self.btn_spin.pack(side=BOTTOM, padx=50)
+        self.connect_to_game(self.host_ip, self.srv_port)
 
     def send_spin_command(self):
-        self.draw()
         cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
         self.note.select(2)
@@ -435,94 +403,7 @@ class Client(Messenger):
         # clear the screen of the question and answers
         self.__clear_frame(self.question_frame_3)
 
-    def draw(self):
 
-
-            self.wheel_frame_2.after(3, self.process_next_frame)
-
-            image = Image.open(self.filename)
-            # Create a photoimage object of the image in the path
-            # Create an object of tkinter ImageTk
-
-
-            angle = 0
-            print(self.process_next_frame)
-
-            n = 0
-            rr = random.choice(self.iterations)
-
-            print( "Random iteration: " + str (rr))
-            spin_time = rr + 372
-            print(spin_time)
-
-            while n <= spin_time:
-                tkimage = ImageTk.PhotoImage(image.rotate(angle))
-                canvas_obj = self.canvas.create_image(500, 500, image=tkimage)
-
-                #Process next frame
-                self.wheel_frame_2.after_idle(self.process_next_frame)
-
-                # Delete previous state of image
-                yield
-                self.canvas.delete(canvas_obj)
-
-                # Angle controls the speed
-                angle += 12
-
-
-                angle %= 360
-                time.sleep(0.002)
-                print(n)
-
-                # Keeping up with frames.
-                n = n + 12
-
-                if n == spin_time:
-
-                    if rr == 60:
-
-                        print("catagory 1")
-
-                    elif rr == 96:
-
-                        print("catagory 2")
-
-                    elif rr == 120:
-
-                        print("catagory 3")
-
-                    elif rr == 156:
-
-                        print("catagory  4")
-
-                    elif rr == 180:
-
-                        print("catagory 5")
-
-                    elif rr == 216:
-
-                        print("catagory 6")
-
-                    elif rr == 240:
-
-                        print("catagory 7")
-                    elif rr == 276:
-
-                        print("catagory 8")
-                    elif rr == 300:
-
-                        print("catagory 9")
-                    elif rr == 336:
-
-                        print("catagory 10")
-
-                    elif rr == 360:
-                        print("catagory 11")
-
-                    else:
-                        print("catagory 0")
-
-                    time.sleep(10000)
 gameplayer = Client(SRV_IP, SRV_PORT)
 # gameplayer.connect_to_game(SRV_IP, SRV_PORT)
 
