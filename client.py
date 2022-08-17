@@ -7,6 +7,7 @@ from tkinter import *
 from tkinter import ttk
 from server import Message, QueryStatus, MessageType, Messenger
 from ui import s
+import pygame.mixer
 from tkinter.messagebox import showinfo
 
 NUM_PLAYERS = 3
@@ -14,6 +15,7 @@ SRV_IP = 'localhost'
 SRV_PORT = 5555
 BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
+MUSIC_FILE = 'resources/audio/Jeopardy-theme-song.mp3'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -160,6 +162,15 @@ class Client(Messenger):
     def load_spin_frame(self):
         self.note.select(1)
 
+    def __start_music(self, music_file):
+        pygame.mixer.init()
+        pygame.mixer.music.load(music_file)
+        pygame.mixer.music.play(loops=1)
+
+    def __stop_music(self, music_file):
+        pygame.mixer.music.stop()
+
+
     def populate_spin_frame(self):
         self.load_spin_frame()
         #### END TEXT INTERFACE ####
@@ -206,6 +217,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
+                self.__start_music(MUSIC_FILE)
                 [player_id, jeopardy_category, tile] = parsed_message.args
                 # TODO: Why is this client receiving its own player ID?
 
@@ -389,6 +401,7 @@ class Client(Messenger):
         pass
 
     def submit_answer(self):
+        self.__stop_music()
         # print(self.gAnswers.get())
 
         # print(self.gAnswers)
