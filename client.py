@@ -7,6 +7,7 @@ from tkinter import *
 from tkinter import ttk
 from server import Message, QueryStatus, MessageType, Messenger
 from ui import s
+import pygame.mixer
 from tkinter.messagebox import showinfo
 
 NUM_PLAYERS = 3
@@ -14,6 +15,7 @@ SRV_IP = 'localhost'
 SRV_PORT = 5555
 BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
+MUSIC_FILE = 'resources/audio/Jeopardy-theme-song.mp3'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,6 +33,10 @@ class Client(Messenger):
 
         # self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
         self.strl = s.S()
+
+        # init music player
+        pygame.mixer.init()
+        pygame.mixer.music.load(MUSIC_FILE)
 
         """
         CREATE ROOT FRAME
@@ -58,11 +64,11 @@ class Client(Messenger):
         lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
         lbl_score.pack(side=LEFT)
         self.label_score_val.set(self.strl.main_lbl_current_score + "0")
-
-        self.label_current_turn_val = StringVar()
-        lbl_turn = ttk.Label(self.frame_top, textvariable=self.label_current_turn_val, padding="10", width="20")
-        lbl_turn.pack(side=LEFT)
-        self.label_current_turn_val.set(self.strl.main_lbl_current_turn + "0")
+        #
+        # self.label_current_turn_val = StringVar()
+        # lbl_turn = ttk.Label(self.frame_top, textvariable=self.label_current_turn_val, padding="10", width="20")
+        # lbl_turn.pack(side=LEFT)
+        # self.label_current_turn_val.set(self.strl.main_lbl_current_turn + "0")
 
         self.label_tokens_val = StringVar()
         lbl_token = ttk.Label(self.frame_top, textvariable=self.label_tokens_val, padding="10", width="20")
@@ -149,6 +155,12 @@ class Client(Messenger):
     def load_prompt_frame(self):
         self.note.select(2)
 
+    def __start_music(self):
+        pygame.mixer.music.play(loops=1)
+
+    def __stop_music(self):
+        pygame.mixer.music.stop()
+
     def populate_spin_frame(self):
         #### END TEXT INTERFACE ####
         self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
@@ -231,7 +243,6 @@ class Client(Messenger):
         logging.info("Connecting to the game self.server")
         threading.Thread(target=self.handle_connection, args=(self.server,)).start()  # start threading immediately
 
-
     def handle_connection(self, server):
         """
         Main loop for client. Runs in a separate thread for the duration of the game.
@@ -256,6 +267,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
+                self.__start_music()
                 [jeopardy_category, tile] = parsed_message.args
 
                 lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}: {tile.points}", padding="10",
@@ -295,7 +307,7 @@ class Client(Messenger):
                 [winner_player_id] = parsed_message.args
 
                 self.load_prompt_frame()
-                self.__clear_frame(self.question_frame_3)
+                self.__clear_frame(self.prompt_frame_3)
                 if len(winner_player_id) == 2:  # in case there is a tie for winner
                     game_end_text = f"Game over... \nPlayers {winner_player_id[0]} and {winner_player_id[1]} have won the game!"
                 elif len(winner_player_id) >2:
@@ -414,6 +426,7 @@ class Client(Messenger):
         self.__clear_frame(self.question_frame_3)
 
     def submit_answer(self):
+        self.__stop_music()
         userAnswer = self.gAnswers.get()
         print(f"user answer: {userAnswer}, {type(userAnswer)}")
         response_info = [userAnswer]
