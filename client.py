@@ -52,7 +52,7 @@ class Client(Messenger):
         self.label_round_val = StringVar()
         lbl_round = ttk.Label(self.frame_top, textvariable=self.label_round_val, padding="10", width="20")
         lbl_round.pack(side=LEFT)
-        self.label_round_val.set(self.strl.main_lbl_current_round+"0")
+        self.label_round_val.set(self.strl.main_lbl_current_round+"1")
 
         self.label_score_val = StringVar()
         lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
@@ -99,21 +99,6 @@ class Client(Messenger):
         self.note.add(self.wheel_frame_2)
         self.note.pack(expand=1, fill='both', padx=5, pady=5)
         self.category_selected = StringVar()
-
-        ## initial menu text
-        self.category_selected.set("Choose category")
-        # Create Dropdown menu
-        self.drp_menu_category_selection = OptionMenu(self.wheel_frame_2, self.category_selected, "Delicious Bytes",
-                                                      "String Theory", "Logic Games", "So Random")
-        self.drp_menu_category_selection.pack()
-        # Create button, it will change label text
-
-        # self.btn_choose_category = Button( self.wheel_frame_2 , text = "Choose category" , command = self.submit_category(self.cc).pack())
-        self.btn_choose_category = Button(self.wheel_frame_2, text="Choose category").pack()
-
-        # Create Select category Label
-        self.lbl_selected_category = Label(self.wheel_frame_2, text=" ")
-        self.lbl_selected_category.pack()
 
         # Create Question Frame
         self.question_frame_3 = ttk.Frame(self.note)
@@ -167,6 +152,66 @@ class Client(Messenger):
         self.btn_spin.pack(side=BOTTOM, padx=50)
         self.connect_to_game(self.host_ip, self.srv_port)
 
+    def prompt_jeopardy_question(self, tile):
+
+        a = str(tile.question)
+
+        lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
+        lbl_player_question.pack(side=TOP)
+        print(str(tile.question))
+        an = tile.answers
+
+        self.gAnswers = StringVar()
+        self.aAnswers = an[2]
+        ## radio buttons
+        for c in tile.answers:
+            r = ttk.Radiobutton(
+                self.question_frame_3,
+                text=c,
+                value=c,
+                variable=self.gAnswers,
+            )
+
+            r.pack(side=TOP)
+
+        ## Submit button
+        btn_submit = ttk.Button(
+            self.question_frame_3,
+            text=self.strl.question_btn_submit,
+            command=self.submit_answer
+        )
+        btn_submit.pack(side=BOTTOM, )
+
+    def prompt_category_choice(self, options, messageType):
+        self.note.select(2)
+
+        self.category_selected = StringVar()
+        ## radio buttons
+        for category in options:
+            r = ttk.Radiobutton(
+                self.question_frame_3,
+                text=category,
+                value=category,
+                variable=self.category_selected,
+            )
+
+            r.pack(side=TOP)
+
+        ## Submit button
+
+        btn_submit = ttk.Button(
+            self.question_frame_3,
+            text=self.strl.category_btn_submit,
+            # use lambda function to include parameters to button call
+            command=lambda: self.submit_category_choice(messageType)
+        )
+        btn_submit.pack(side=BOTTOM, )
+
+
+        # Create Select category Label
+        self.lbl_selected_category = Label(self.wheel_frame_2, text=" ")
+        self.lbl_selected_category.pack()
+
     def send_spin_command(self):
         cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
@@ -207,74 +252,34 @@ class Client(Messenger):
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
                 [player_id, jeopardy_category, tile] = parsed_message.args
-                # TODO: Why is this client receiving its own player ID?
 
-                a = str(tile.question)
+                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10",
+                                         width="300")
 
-                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10", width="300")
-
-                lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
-                lbl_player_question.pack(side=TOP)
-                print(str(tile.question))
-                an = tile.answers
-
-                self.gAnswers = StringVar()
-                self.aAnswers = an[2]
-                ## radio buttons
-                for c in tile.answers:
-                    r = ttk.Radiobutton(
-                        self.question_frame_3,
-                        text=c,
-                        value=c,
-                        variable=self.gAnswers,
-                    )
-
-                    r.pack(side=TOP)
-
-                ## Submit button
-                btn_submit = ttk.Button(
-                    self.question_frame_3,
-                    text=self.strl.question_btn_submit,
-                    command=self.submit_answer
-                )
-                btn_submit.pack(side=BOTTOM, )
+                self.prompt_jeopardy_question(tile)
 
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [player_id,
                  open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-                # TODO (UI): Ask this player to select a Jeopardy category for them to answer
-                # TODO (UI): Get back user's selected category and store in chosen_category
-                # TODO (UI): Delete text interface code below
+                prompt_text = "Player's Choice: select a question category for your turn"
+                lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
+                                         width="300")
+                lbl_category.pack(side=TOP)
 
-                chosen_category = None
-
-                ### BEGIN TEXT INTERFACE ###
-                print("Player's Choice!")
-                print("Select a Jeopardy category:")
-                chosen_category = self.__prompt_user_from_list(open_categories)
-                #### END TEXT INTERFACE ####
-
-                response_info = [chosen_category]
+                self.prompt_category_choice(open_categories, MessageType.PLAYERS_CHOICE)
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
                 [player_id,
                  open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-                # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
-                # TODO (UI): Get back user's selected category and store in chosen_category
-                # TODO (UI): Delete text interface code below
+                prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
+                lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
+                                         width="300")
+                lbl_category.pack(side=TOP)
 
-                chosen_category = None
-
-                ### BEGIN TEXT INTERFACE ###
-                print("Opponent's Choice!")
-                print("Select a Jeopardy category for your opponent to answer:")
-                chosen_category = self.__prompt_user_from_list(open_categories)
-                #### END TEXT INTERFACE ####
-
-                response_info = [chosen_category]
+                self.prompt_category_choice(open_categories, MessageType.OPPONENTS_CHOICE)
 
             elif parsed_message.code == MessageType.SPIN:
                 [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
@@ -388,11 +393,18 @@ class Client(Messenger):
     def notify_spin(self):
         pass
 
-    def submit_answer(self):
-        # print(self.gAnswers.get())
+    def submit_category_choice(self, messageType):
+        selected_category = self.category_selected.get()
+        print(f"user answer: {selected_category}, {type(selected_category)}")
+        response_info = [selected_category]
+        # return response_info
+        print(response_info)
+        self.send_command(self.server, Message(messageType, response_info))
 
-        # print(self.gAnswers)
-        # print(self.aAnswers)
+        # clear the screen of the question and answers
+        self.__clear_frame(self.question_frame_3)
+
+    def submit_answer(self):
         userAnswer = self.gAnswers.get()
         print(f"user answer: {userAnswer}, {type(userAnswer)}")
         response_info = [userAnswer]

@@ -25,6 +25,7 @@ class S:
         # Question Strings
         self.question_title_bar  = "Woj - Answer Question"
         self.question_btn_submit = "Submit Answer"
+        self.category_btn_submit = "Select Category"
         self.question_show_info_correct_answer="Correct Answer!"
         self.question_show_info_wrong_answer="Wrong Answer!"
 
