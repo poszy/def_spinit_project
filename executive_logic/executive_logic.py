@@ -120,7 +120,6 @@ class ExecutiveLogic:
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
 
-
         elif wheel_result == Sector.OPPONENTS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
             random_opponent_id = self.__select_rand_opponent(curr_player_id)
@@ -144,8 +143,16 @@ class ExecutiveLogic:
         :return: is_correct (bool): True if the player's answer was correct, False otherwise
         """
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
+        opponents_ids = self.__get_opponents(curr_player_id)
+        if len(self.game_server.players) > 1:  # not only one player in game
+            # notify opponents of questions
+            logging.info(f"[Executive Logic] notify opponents {opponents_ids}")
+            self.__notify_players(opponents_ids, MessageType.JEOPARDY_QUESTION,
+                                  [curr_player_id, jeopardy_category, tile])
+        # Display tile to user, wait for response
+        logging.info(f"[Executive Logic] query server to player {curr_player_id}")
         self.__query_server(curr_player_id, MessageType.JEOPARDY_QUESTION,
-                            [jeopardy_category, tile])  # Display tile to user, wait for response
+                            [curr_player_id, jeopardy_category, tile])
         _, [user_answer] = self.query_response.code, self.query_response.args
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
@@ -158,7 +165,8 @@ class ExecutiveLogic:
         :return: void
         """
         winner_id = self.score_keeper.determine_winner()
-        self.__notify_all_players(MessageType.END_GAME, [winner_id])  # Tell server who won, and to end game
+        self.__notify_players(self.game_server.players, MessageType.END_GAME,
+                              [winner_id])  # Tell server who won, and to end game
         self.is_game_running = False
 
     def __next_player(self, curr_player_id):
@@ -197,7 +205,7 @@ class ExecutiveLogic:
         self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
         self.waiting_on_player_id = player_id
 
-        self.query_status = QueryStatus.SERVER_TO_CLIENT  # Tell server we want to query client
+        self.query_status = QueryStatus.SERVER_TO_CLIENT_WAIT  # Tell server we want to query client
 
         while self.query_status is not QueryStatus.STANDBY:  # Wait for a response from the server
             pass
@@ -223,25 +231,40 @@ class ExecutiveLogic:
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
                              MAX_SPINS - self.num_spins])
 
-    def __notify_all_players(self, command: MessageType, args: list):
+    def __notify_players(self, players: list, command: MessageType, args: list):
         """
         Called to send a message to all players.
         Used to update all players on other players' spins, score updates, etc.
         :return: void
         """
-        for player_id in self.game_server.players:
-            self.__query_server(player_id, command, args)
+        for player_id in players:
+            logging.info(f"[exec logic: notify players], player_id {player_id}")
 
-    def __select_rand_opponent(self, curr_player_id):
+            if self.query_status != QueryStatus.STANDBY:  # Wait for previous query to complete
+                pass
+
+            logging.info(f"[exec logic: notify players], setting query status")
+            self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
+            self.waiting_on_player_id = player_id
+            self.query_status = QueryStatus.SERVER_TO_CLIENT_CONTINUE  # Tell server we want to query client
+
+
+        # self.query_response = Message(MessageType.EMPTY, [])  # Clear server's previous response
+
+    def __get_opponents(self, curr_player_id):
         opponent_ids = []
         for player_id in self.game_server.players:
             if player_id != curr_player_id:
                 opponent_ids.append(player_id)
 
         if len(opponent_ids) == 0:
-            return curr_player_id  # Return current player in single-player game
+            return [curr_player_id]  # Return current player in single-player game
         else:
-            return random.choice(opponent_ids)  # Otherwise, return a random opponent that isn't the current player
+            return opponent_ids
+
+    def __select_rand_opponent(self, curr_player_id):
+        opponent_ids = self.__get_opponents(curr_player_id)
+        return random.choice(opponent_ids)  # Otherwise, return a random opponent
 
 
 class ConfigWindow:

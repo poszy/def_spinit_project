@@ -57,6 +57,11 @@ class Client(Messenger):
         lbl_round.pack(side=LEFT)
         self.label_round_val.set(self.strl.main_lbl_current_round+"0")
 
+        self.label_spins_val = StringVar()
+        lbl_spins = ttk.Label(self.frame_top, textvariable=self.label_spins_val, padding="10", width="30")
+        lbl_spins.pack(side=LEFT)
+        self.label_spins_val.set(self.strl.main_lbl_spins_remain+"50")
+
         self.label_score_val = StringVar()
         lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
         lbl_score.pack(side=LEFT)
@@ -71,7 +76,6 @@ class Client(Messenger):
         lbl_token = ttk.Label(self.frame_top, textvariable=self.label_tokens_val, padding="10", width="20")
         lbl_token.pack(side=LEFT)
         self.label_tokens_val.set(self.strl.main_lbl_current_tokens+"0")
-
 
         # Place the top frame
         self.frame_top.pack()
@@ -146,12 +150,19 @@ class Client(Messenger):
         # self.root.after(3000, self.load_lobby_frame)
 
     # Helper function
-    def __update_scores_tokens_spins(self, scores, tokens, spins):
+    def __update_scores_tokens_spins(self, scores, tokens, spins_remain):
+        # clear the screen of the question and answers
+        self.__clear_frame(self.question_frame_3)
+
         my_score = str(scores[self.player_id])
         self.label_score_val.set(self.strl.main_lbl_current_score+my_score)
 
         my_tokens = str(tokens[self.player_id])
         self.label_tokens_val.set(self.strl.main_lbl_current_tokens+my_tokens)
+
+        # TODO: add spin count
+        spins_remain = str(spins_remain)
+        self.label_spins_val.set(self.strl.main_lbl_spins_remain+spins_remain)
 
     def __clear_frame(self, frame):
         for widget in frame.winfo_children():  # get all the children widgets in the frame
@@ -163,12 +174,15 @@ class Client(Messenger):
     def load_spin_frame(self):
         self.note.select(1)
 
+    def load_prompt_frame(self):
+        self.note.select(2)
+
     def __start_music(self, music_file):
         pygame.mixer.init()
         pygame.mixer.music.load(music_file)
         pygame.mixer.music.play(loops=1)
 
-    def __stop_music(self, music_file):
+    def __stop_music(self):
         pygame.mixer.music.stop()
 
 
@@ -182,7 +196,7 @@ class Client(Messenger):
     def send_spin_command(self):
         cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
-        self.note.select(2)
+        self.load_prompt_frame()
 
     def connect_to_game(self, host, port):
         """
@@ -218,17 +232,18 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                self.__start_music(MUSIC_FILE)
-                [ jeopardy_category, tile] = parsed_message.args
+                self.load_prompt_frame()  # in case it's not your turn, still want to see question
 
+                [player_id, jeopardy_category, tile] = parsed_message.args
 
                 a = str(tile.question)
 
                 lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10", width="300")
+                lbl_category.pack(side=TOP)
 
                 lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
                 lbl_player_question.pack(side=TOP)
-                print(str(tile.question))
+                logging.info(f"[Client: JEOPARDY QUESTION]: {str(tile.question)}")
                 an = tile.answers
 
                 self.gAnswers = StringVar()
@@ -244,13 +259,19 @@ class Client(Messenger):
 
                     r.pack(side=TOP)
 
-                ## Submit button
-                btn_submit = ttk.Button(
-                    self.question_frame_3,
-                    text=self.strl.question_btn_submit,
-                    command=self.submit_answer
-                )
-                btn_submit.pack(side=BOTTOM, )
+                if player_id == self.player_id:  # only start music + make submit button  for active player
+                    self.__start_music(MUSIC_FILE)
+                    ## Submit button
+                    btn_submit = ttk.Button(
+                        self.question_frame_3,
+                        text=self.strl.question_btn_submit,
+                        command=self.submit_answer
+                    )
+                    btn_submit.pack(side=BOTTOM, )
+                else:
+                    lbl_category = ttk.Label(self.question_frame_3, text=f"Opponent's Turn", padding="20",
+                                             width="300")
+                    lbl_category.pack(side=BOTTOM)
 
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
@@ -322,9 +343,7 @@ class Client(Messenger):
                 # TODO (UI): Update the UI to display the result of the previous spin
                 # TODO (UI): Delete text interface code below
 
-                ### BEGIN TEXT INTERFACE ###
-                print(f"You Spun: {spin_result}\n")
-                #### END TEXT INTERFACE ####
+                logging.info(f"You Spun: {spin_result}\n")
 
                 response_info = []
                 self.send_command(self.server, Message(parsed_message.code, response_info))

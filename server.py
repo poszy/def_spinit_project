@@ -16,9 +16,10 @@ BYTE_ENCODING = 'utf-8'
 
 
 class QueryStatus(Enum):
-    SERVER_TO_CLIENT = 1  # Information is being sent from Executive Logic to Server to Client
+    SERVER_TO_CLIENT_WAIT = 1  # Information is being sent from Executive Logic to Server to Client, wait for resp
     CLIENT_TO_SERVER = 2  # Information is being sent from Client to Server to Executive Logic
     STANDBY = 3  # No information is being sent right now
+    SERVER_TO_CLIENT_CONTINUE = 4  # Information is being sent from Executive Logic to Server to Client
 
 
 class MessageType(Enum):
@@ -38,7 +39,7 @@ class MessageType(Enum):
     # Response Args:    []
 
     JEOPARDY_QUESTION = 2  # Called to ask server to ask client to answer a Jeopardy question.
-    # Request  Args: 	[Board.tile]
+    # Request  Args: 	[player_id, Board.tile]
     # Response Args:	[user_answer]
 
     PLAYERS_CHOICE = 3  # Called to ask server to ask client to ask a player to input a Jeopardy category.
@@ -191,11 +192,18 @@ class GameServer(Messenger):
                 logging.info("Server received message from client: %s", parsed_message.code)
                 self.executive_logic.query_status = QueryStatus.STANDBY  # Reset query status to standby
 
-            elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT:  # Send message to client
+            elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT_WAIT:  # Send message to client
                 command = self.executive_logic.server_message  # Get Message from server
                 self.send_command(client, command)  # Send Message to client
+                logging.info(f"[server]: WAIT sending to client {client}, {command}")
                 self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
 
+            elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT_CONTINUE:  # Send message to client
+                command = self.executive_logic.server_message  # Get Message from server
+                self.send_command(client, command)  # Send Message to client
+                logging.info(f"[server]: CONTINUE sending to client {client}, {command}")
+                self.executive_logic.query_status = QueryStatus.STANDBY  # no need to wait for response
+                self.executive_logic.waiting_on_player_id=None
             else:
                 # raise Exception("Unknown query status %s in server!", self.executive_logic.query_status)
                 pass
