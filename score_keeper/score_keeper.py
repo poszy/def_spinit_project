@@ -139,3 +139,11 @@ class ScoreKeeper:
         :return: void
         """
         self.player_points_current_round = defaultdict(int)
+
+    def initialize_player(self, player_id):
+        """
+        Called at the start of the game.
+        Lets scorekeeper know about a player in the game, and sets their scores to 0.
+        :return: void
+        """
+        self.update_score(player_id, True, 0)

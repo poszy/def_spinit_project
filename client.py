@@ -18,6 +18,7 @@ HEADER_SIZE = 10
 MUSIC_FILE = 'resources/audio/Jeopardy-theme-song.mp3'
 
 logging.basicConfig(level=logging.INFO)
+logging.disable(level=logging.INFO)  # Disable logging for demo
 
 
 class Client(Messenger):
@@ -218,8 +219,8 @@ class Client(Messenger):
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
                 self.__start_music(MUSIC_FILE)
-                [player_id, jeopardy_category, tile] = parsed_message.args
-                # TODO: Why is this client receiving its own player ID?
+                [ jeopardy_category, tile] = parsed_message.args
+
 
                 a = str(tile.question)
 
@@ -253,8 +254,7 @@ class Client(Messenger):
 
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id,
-                 open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args
 
                 # TODO (UI): Ask this player to select a Jeopardy category for them to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -271,8 +271,7 @@ class Client(Messenger):
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id,
-                 open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args
 
                 # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -289,7 +288,7 @@ class Client(Messenger):
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
-                [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                _ = parsed_message.args
 
                 self.load_spin_frame()
 
@@ -302,8 +301,8 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\n==========================\nEND OF GAME\n==========================\n")
-                print(f"Player {winner_player_id} has won!")
-                input("Press enter to end the game")
+                print(f"Player {winner_player_id} has won!\n\n")
+                #input("Press enter to end the game")
                 #### END TEXT INTERFACE ####
 
                 self.game_over = True
@@ -347,7 +346,7 @@ class Client(Messenger):
         # Ask user to select an option from the list
         selected_index = None
         while selected_index not in range(0, len(prompt_list)):
-            max_index = str(len(prompt_list) - 1)
+            max_index = str(len(prompt_list)-1)
             user_input = input(f"Enter option number (0-{max_index}): ")
             try:
                 selected_index = int(user_input)  # in case user inputs non-int value
