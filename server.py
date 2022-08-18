@@ -180,10 +180,10 @@ class GameServer(Messenger):
         logging.info("Handling client connections...")
 
         while self.executive_logic.is_game_running:  # Loop while game is running
+            logging.info(f"[server:handleConnections] waiting on player {self.executive_logic.waiting_on_player_id}, current player {this_player_id}")
             if self.executive_logic.waiting_on_player_id != this_player_id \
                     or self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client, if server is handling another client or if QueryStatus is STANDBY
                 continue
-
             elif self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
                 print("\n\n=====================================================\n\n")
                 parsed_message = self.buffer_message(client)  # Wait for client response
@@ -203,7 +203,7 @@ class GameServer(Messenger):
                 self.send_command(client, command)  # Send Message to client
                 logging.info(f"[server]: CONTINUE sending to client {client}, {command}")
                 self.executive_logic.query_status = QueryStatus.STANDBY  # no need to wait for response
-                self.executive_logic.waiting_on_player_id=None
+                self.executive_logic.waiting_on_player_id = None
             else:
                 # raise Exception("Unknown query status %s in server!", self.executive_logic.query_status)
                 pass
