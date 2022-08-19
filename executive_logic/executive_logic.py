@@ -227,7 +227,7 @@ class ExecutiveLogic:
         Sends server the current player scores, player tokens, and number of spins remaining.
         :return: void
         """
-        self.__query_server(curr_player_id, MessageType.UPDATE_SCORES,
+        self.__notify_players(self.game_server.players, MessageType.UPDATE_SCORES,
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
                              MAX_SPINS - self.num_spins])
 

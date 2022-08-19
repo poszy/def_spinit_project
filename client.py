@@ -18,7 +18,7 @@ HEADER_SIZE = 10
 MUSIC_FILE = 'resources/audio/Jeopardy-theme-song.mp3'
 
 logging.basicConfig(level=logging.INFO)
-logging.disable(level=logging.INFO)  # Disable logging for demo
+# logging.disable(level=logging.INFO)  # Disable logging for demo
 
 
 class Client(Messenger):
@@ -122,11 +122,11 @@ class Client(Messenger):
         self.lbl_selected_category = Label(self.wheel_frame_2, text=" ")
         self.lbl_selected_category.pack()
 
-        # Create Question Frame
-        self.question_frame_3 = ttk.Frame(self.note)
+        # Create Prompt Frame
+        self.prompt_frame_3 = ttk.Frame(self.note)
 
         # Add Frame to Notebook
-        self.note.add(self.question_frame_3)
+        self.note.add(self.prompt_frame_3)
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
@@ -151,8 +151,9 @@ class Client(Messenger):
 
     # Helper function
     def __update_scores_tokens_spins(self, scores, tokens, spins_remain):
+        logging.info("update_scores_tokens_spins...")
         # clear the screen of the question and answers
-        self.__clear_frame(self.question_frame_3)
+        self.__clear_frame(self.prompt_frame_3)
 
         my_score = str(scores[self.player_id])
         self.label_score_val.set(self.strl.main_lbl_current_score+my_score)
@@ -187,11 +188,11 @@ class Client(Messenger):
 
 
     def populate_spin_frame(self):
-        self.load_spin_frame()
         #### END TEXT INTERFACE ####
         self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
         self.btn_spin.pack(side=BOTTOM, padx=50)
         self.connect_to_game(self.host_ip, self.srv_port)
+        self.load_prompt_frame()
 
     def send_spin_command(self):
         cc = self.category_selected.get()
@@ -238,10 +239,10 @@ class Client(Messenger):
 
                 a = str(tile.question)
 
-                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10", width="300")
+                lbl_category = ttk.Label(self.prompt_frame_3, text=f"Category: {jeopardy_category}", padding="10", width="300")
                 lbl_category.pack(side=TOP)
 
-                lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
+                lbl_player_question = ttk.Label(self.prompt_frame_3, text=a, padding="10", width="300")
                 lbl_player_question.pack(side=TOP)
                 logging.info(f"[Client: JEOPARDY QUESTION]: {str(tile.question)}")
                 an = tile.answers
@@ -251,7 +252,7 @@ class Client(Messenger):
                 ## radio buttons
                 for c in tile.answers:
                     r = ttk.Radiobutton(
-                        self.question_frame_3,
+                        self.prompt_frame_3,
                         text=c,
                         value=c,
                         variable=self.gAnswers,
@@ -263,13 +264,13 @@ class Client(Messenger):
                     self.__start_music(MUSIC_FILE)
                     ## Submit button
                     btn_submit = ttk.Button(
-                        self.question_frame_3,
+                        self.prompt_frame_3,
                         text=self.strl.question_btn_submit,
                         command=self.submit_answer
                     )
                     btn_submit.pack(side=BOTTOM, )
                 else:
-                    lbl_category = ttk.Label(self.question_frame_3, text=f"Opponent's Turn", padding="20",
+                    lbl_category = ttk.Label(self.prompt_frame_3, text=f"Opponent's Turn", padding="20",
                                              width="300")
                     lbl_category.pack(side=BOTTOM)
 
@@ -432,7 +433,7 @@ class Client(Messenger):
         self.send_command(self.server, Message(MessageType.JEOPARDY_QUESTION, response_info))
 
         # clear the screen of the question and answers
-        self.__clear_frame(self.question_frame_3)
+        self.__clear_frame(self.prompt_frame_3)
 
 
 gameplayer = Client(SRV_IP, SRV_PORT)
