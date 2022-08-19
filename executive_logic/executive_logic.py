@@ -232,13 +232,14 @@ class ExecutiveLogic:
                              MAX_SPINS - self.num_spins])
 
 
-    def __notify_players(self, players: list, command: MessageType, args: list):
+    def __notify_players(self, players_list: list, command: MessageType, args: list):
         """
         Called to send a message to all players in the input list.
         Used to update all players on other players' spins, score updates, etc.
         :return: void
         """
-        for player_id in players:
+        for player_id in players_list:
+            # logging.info("IN LOOP exec logic notifying player {player_id}")
             self.__query_server(player_id, command, args)
 
     def __get_opponents(self, curr_player_id):
@@ -253,8 +254,6 @@ class ExecutiveLogic:
             return opponent_ids
 
     def __select_rand_opponent(self, curr_player_id):
-        opponent_ids = []
-
         opponent_ids = self.__get_opponents(curr_player_id)
         return random.choice(opponent_ids)  # Otherwise, return a random opponent
 

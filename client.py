@@ -234,10 +234,12 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                logging.info(f"[Executive Logic] {self.player_id} received question")
-                self.load_prompt_frame()  # in case it's not your turn, still want to see question
-
                 [player_id, jeopardy_category, tile] = parsed_message.args
+                if player_id != self.player_id:  # not the active player
+                    response_info = []
+                    self.send_command(self.server, Message(parsed_message.code, response_info))
+
+                self.load_prompt_frame()  # in case it's not your turn, still want to see question
 
                 a = str(tile.question)
 
@@ -262,14 +264,7 @@ class Client(Messenger):
 
                     r.pack(side=TOP)
 
-                if player_id != self.player_id:  # I am not the active player, just return an empty message to server
-                    lbl_category = ttk.Label(self.prompt_frame_3, text=f"Opponent's Turn", padding="20",
-                                             width="300")
-                    lbl_category.pack(side=BOTTOM)
-
-                    response_info = []
-                    self.send_command(self.server, Message(parsed_message.code, response_info))
-                else:
+                if player_id == self.player_id:  # I am the active player
 
                     self.__start_music(MUSIC_FILE)
                     ## Submit button
@@ -279,6 +274,12 @@ class Client(Messenger):
                         command=self.submit_answer
                     )
                     btn_submit.pack(side=BOTTOM, )
+                else:
+                    lbl_category = ttk.Label(self.prompt_frame_3, text=f"Opponent's Turn", padding="20",
+                                             width="300")
+                    lbl_category.pack(side=BOTTOM)
+
+
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [open_categories] = parsed_message.args
