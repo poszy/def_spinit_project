@@ -77,6 +77,7 @@ class Client(Messenger):
         lbl_token.pack(side=LEFT)
         self.label_tokens_val.set(self.strl.main_lbl_current_tokens+"0")
 
+
         # Place the top frame
         self.frame_top.pack()
 
@@ -233,6 +234,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
+                logging.info(f"[Executive Logic] {self.player_id} received question")
                 self.load_prompt_frame()  # in case it's not your turn, still want to see question
 
                 [player_id, jeopardy_category, tile] = parsed_message.args
@@ -260,7 +262,15 @@ class Client(Messenger):
 
                     r.pack(side=TOP)
 
-                if player_id == self.player_id:  # only start music + make submit button  for active player
+                if player_id != self.player_id:  # I am not the active player, just return an empty message to server
+                    lbl_category = ttk.Label(self.prompt_frame_3, text=f"Opponent's Turn", padding="20",
+                                             width="300")
+                    lbl_category.pack(side=BOTTOM)
+
+                    response_info = []
+                    self.send_command(self.server, Message(parsed_message.code, response_info))
+                else:
+
                     self.__start_music(MUSIC_FILE)
                     ## Submit button
                     btn_submit = ttk.Button(
@@ -269,11 +279,6 @@ class Client(Messenger):
                         command=self.submit_answer
                     )
                     btn_submit.pack(side=BOTTOM, )
-                else:
-                    lbl_category = ttk.Label(self.prompt_frame_3, text=f"Opponent's Turn", padding="20",
-                                             width="300")
-                    lbl_category.pack(side=BOTTOM)
-
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [open_categories] = parsed_message.args

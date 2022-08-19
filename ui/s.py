@@ -10,8 +10,7 @@ class S:
         self.main_lbl_current_turn="Current Turn: Player "
         self.main_lbl_actual_turn="Player 0"
         self.main_lbl_current_tokens=" Free Pass Tokens:  "
-        self.main_lbl_spins_remain="Spins Remaining in Round: "
-
+        self.main_lbl_spins_remain = "Spins Remaining: "
 
         # Lobby Strings
         self.lobby_title_bar = "Woj - Lobby"

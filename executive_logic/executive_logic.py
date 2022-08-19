@@ -89,6 +89,7 @@ class ExecutiveLogic:
             else:
                 is_correct = self.__execute_category(wheel_result, curr_player_id,
                                                      round_num)  # Ask player Jeopardy question
+                logging.info(f"player is_correct {is_correct}")
                 if is_correct:  # If player is correct, they spin again
                     self.__execute_turn(curr_player_id, round_num)  # Spin again
 
@@ -120,6 +121,7 @@ class ExecutiveLogic:
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
 
+
         elif wheel_result == Sector.OPPONENTS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
             random_opponent_id = self.__select_rand_opponent(curr_player_id)
@@ -147,13 +149,12 @@ class ExecutiveLogic:
         if len(self.game_server.players) > 1:  # not only one player in game
             # notify opponents of questions
             logging.info(f"[Executive Logic] notify opponents {opponents_ids}")
-            self.__notify_players(opponents_ids, MessageType.JEOPARDY_QUESTION,
-                                  [curr_player_id, jeopardy_category, tile])
-        # Display tile to user, wait for response
-        logging.info(f"[Executive Logic] query server to player {curr_player_id}")
+            self.__notify_players(opponents_ids, MessageType.JEOPARDY_QUESTION, [curr_player_id, jeopardy_category, tile])
         self.__query_server(curr_player_id, MessageType.JEOPARDY_QUESTION,
-                            [curr_player_id, jeopardy_category, tile])
-        _, [user_answer] = self.query_response.code, self.query_response.args
+                            [curr_player_id, jeopardy_category, tile])  # Display tile to user, wait for response
+        _, user_resp = self.query_response.code, self.query_response.args
+        if len(user_resp) > 0:  # this is sent back empty from non-active player
+            user_answer = user_resp[0]
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
         self.__update_scores_tokens_spins(curr_player_id)
@@ -165,8 +166,7 @@ class ExecutiveLogic:
         :return: void
         """
         winner_id = self.score_keeper.determine_winner()
-        self.__notify_players(self.game_server.players, MessageType.END_GAME,
-                              [winner_id])  # Tell server who won, and to end game
+        self.__notify_players(self.game_server.players, MessageType.END_GAME, [winner_id])  # Tell server who won, and to end game
         self.is_game_running = False
 
     def __next_player(self, curr_player_id):
@@ -205,7 +205,7 @@ class ExecutiveLogic:
         self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
         self.waiting_on_player_id = player_id
 
-        self.query_status = QueryStatus.SERVER_TO_CLIENT_WAIT  # Tell server we want to query client
+        self.query_status = QueryStatus.SERVER_TO_CLIENT  # Tell server we want to query client
 
         while self.query_status is not QueryStatus.STANDBY:  # Wait for a response from the server
             pass
@@ -231,25 +231,15 @@ class ExecutiveLogic:
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
                              MAX_SPINS - self.num_spins])
 
+
     def __notify_players(self, players: list, command: MessageType, args: list):
         """
-        Called to send a message to all players.
+        Called to send a message to all players in the input list.
         Used to update all players on other players' spins, score updates, etc.
         :return: void
         """
         for player_id in players:
-            logging.info(f"[exec logic: notify players], player_id {player_id}")
-
-            if self.query_status != QueryStatus.STANDBY:  # Wait for previous query to complete
-                pass
-
-            logging.info(f"[exec logic: notify players], setting query status")
-            self.server_message = Message(command, args)  # Store the query in self.server_message for server to read
-            self.waiting_on_player_id = player_id
-            self.query_status = QueryStatus.SERVER_TO_CLIENT_CONTINUE  # Tell server we want to query client
-
-
-        # self.query_response = Message(MessageType.EMPTY, [])  # Clear server's previous response
+            self.__query_server(player_id, command, args)
 
     def __get_opponents(self, curr_player_id):
         opponent_ids = []
@@ -263,8 +253,11 @@ class ExecutiveLogic:
             return opponent_ids
 
     def __select_rand_opponent(self, curr_player_id):
+        opponent_ids = []
+
         opponent_ids = self.__get_opponents(curr_player_id)
         return random.choice(opponent_ids)  # Otherwise, return a random opponent
+
 
 
 class ConfigWindow:
