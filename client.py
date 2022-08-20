@@ -145,6 +145,9 @@ class Client(Messenger):
     def load_spin_frame(self):
         self.note.select(1)
 
+    def load_prompt_frame(self):
+        self.note.select(2)
+
     def populate_spin_frame(self):
         self.load_spin_frame()
         #### END TEXT INTERFACE ####
@@ -183,9 +186,10 @@ class Client(Messenger):
         btn_submit.pack(side=BOTTOM, )
 
     def prompt_category_choice(self, options, messageType):
-        self.note.select(2)
+        self.load_prompt_frame()
 
         self.category_selected = StringVar()
+        self.category_selected.set(options[0])  #give this a default value in case the user doesn't select one
         ## radio buttons
         for category in options:
             r = ttk.Radiobutton(
@@ -215,7 +219,7 @@ class Client(Messenger):
     def send_spin_command(self):
         cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
-        self.note.select(2)
+        self.load_prompt_frame()
 
     def connect_to_game(self, host, port):
         """
@@ -253,8 +257,9 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
                 [player_id, jeopardy_category, tile] = parsed_message.args
 
-                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10",
+                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}: {tile.points}", padding="10",
                                          width="300")
+                lbl_category.pack(side=TOP)
 
                 self.prompt_jeopardy_question(tile)
 
@@ -290,17 +295,21 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.END_GAME:
                 [winner_player_id] = parsed_message.args
 
-                # TODO (UI): Tell player the game has ended, and display the winning player id
-                # TODO (UI): Delete text interface code below
+                self.load_prompt_frame()
+                self.__clear_frame(self.question_frame_3)
+                if len(winner_player_id) == 2:  # in case there is a tie for winner
+                    game_end_text = f"Game over... \nPlayers {winner_player_id[0]} and {winner_player_id[1]} have won the game!"
+                elif len(winner_player_id) >2:
+                    start_winners = ",".join(winner_player_id[0:-1])  # exclude last winner
+                    game_end_text = f"Game over... \nPlayers {start_winners} and {winner_player_id[-1]} have won the game!"
+                else:
+                    game_end_text = f"Game over... \nPlayer {winner_player_id} has won the game!"
 
-                ### BEGIN TEXT INTERFACE ###
-                print("\n==========================\nEND OF GAME\n==========================\n")
-                print(f"Player {winner_player_id} has won!")
-                input("Press enter to end the game")
-                #### END TEXT INTERFACE ####
+                lbl_winner = ttk.Label(self.question_frame_3, text=game_end_text, padding="10",
+                                         width="300")
+                lbl_winner.pack(side=TOP)
 
                 self.game_over = True
-                response_info = []
 
             elif parsed_message.code == MessageType.UPDATE_SCORES:
                 [scores_dict, tokens_dict, num_spins_remaining] = parsed_message.args
