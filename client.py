@@ -61,7 +61,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                [player_id, jeopardy_category, tile] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [jeopardy_category, tile] = parsed_message.args
 
                 # TODO (UI): Display question (tile.question) and answer choices (tile.answers) to user
                 # TODO (UI): Get back user answer and store in user_answer
@@ -85,7 +85,7 @@ class Client(Messenger):
                 response_info = [user_answer]
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args
 
                 # TODO (UI): Ask this player to select a Jeopardy category for them to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -102,7 +102,7 @@ class Client(Messenger):
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id, open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args
 
                 # TODO (UI): Ask this player to select a Jeopardy category for their opponent to answer
                 # TODO (UI): Get back user's selected category and store in chosen_category
@@ -119,7 +119,7 @@ class Client(Messenger):
                 response_info = [chosen_category]
 
             elif parsed_message.code == MessageType.SPIN:
-                [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                _ = parsed_message.args
 
                 # TODO (UI): Ask this player to push a button to spin the wheel
                 # TODO (UI): Delete text interface code below
@@ -139,8 +139,8 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\n==========================\nEND OF GAME\n==========================\n")
-                print(f"Player {winner_player_id} has won!")
-                input("Press enter to end the game")
+                print(f"Player {winner_player_id} has won!\n\n")
+                #input("Press enter to end the game")
                 #### END TEXT INTERFACE ####
 
                 self.game_over = True
