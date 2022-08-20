@@ -1,6 +1,5 @@
 import logging
 import pickle
-import time
 from enum import Enum
 import socket
 import threading
@@ -12,7 +11,6 @@ HEADER_SIZE = 10
 
 # pickling and buffering : https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
 
-NUM_PLAYERS = 3
 MAX_SPINS = 3
 BYTE_ENCODING = 'utf-8'
 
@@ -36,23 +34,23 @@ class MessageType(Enum):
     # Response Args:	[]
 
     PLAYER_ID = 1  # Called by server the first time it connects to a client. Assigns that client its unique player ID (0, 1, or 2).
-    # Request Args:     [player_id]
+    # Request Args:     []
     # Response Args:    []
 
     JEOPARDY_QUESTION = 2  # Called to ask server to ask client to answer a Jeopardy question.
-    # Request  Args: 	[player_id, Board.tile]
+    # Request  Args: 	[Board.tile]
     # Response Args:	[user_answer]
 
     PLAYERS_CHOICE = 3  # Called to ask server to ask client to ask a player to input a Jeopardy category.
-    # Request  Args: 	[player_id, round_num]
+    # Request  Args: 	[round_num]
     # Response Args:	[chosen_category]
 
     OPPONENTS_CHOICE = 4  # Called to ask server to ask client to ask a player to input a Jeopardy category.
-    # Request  Args: 	[player_id, round_num]
+    # Request  Args: 	[round_num]
     # Response Args:	[chosen_category]
 
     SPIN = 5  # Called to ask server to ask client to notify player it's their turn, and ask that player to spin the wheel.
-    # Request  Args: 	[player_id]
+    # Request  Args: 	[]
     # Response Args:	[]
 
     END_GAME = 6  # Called to tell server that the game has ended.
@@ -70,7 +68,6 @@ class MessageType(Enum):
     SPIN_RESULT = 9  # Called to tell server/client what the result of the latest spin was
     # Request  Args:    [sector_result]
     # Response Args:    []
-
 
 
 class Message:
@@ -123,7 +120,7 @@ class Messenger:
 class GameServer(Messenger):
 
     # default constructor
-    def __init__(self, srv_ip, srv_port, executive_logic):
+    def __init__(self, srv_ip, srv_port, num_players, executive_logic):
         super().__init__(srv_ip, srv_port)
         self.host_ip = srv_ip
         self.port = srv_port
@@ -132,6 +129,7 @@ class GameServer(Messenger):
         self.whose_turn = 1  # pointer to current player taking turn
         self.game_over = False
 
+        self.num_players = num_players
         self.next_player_id = 0
         self.players = []  # keep track of players
 
@@ -143,16 +141,19 @@ class GameServer(Messenger):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
         server.bind((self.host_ip, self.port))
         logging.info("server starting a game, listening for players on port: " + str(self.port))
-        server.listen(NUM_PLAYERS - 1)  # listen for 2 connections. 3 player game  # TODO: Should be 3 players
+        server.listen(self.num_players)  # listen for players to join
 
-        client, addr = server.accept()  # next player connection
+        # send each new player their playerID
+        for _ in range(self.num_players):
+            logging.info("Adding player %d", self.next_player_id)
+            client, addr = server.accept()  # next player connection
 
-        # send new player its playerID  (TODO: Should be doing this multiple times to add more players)
-        new_player_id = self.__get_new_player_id()
-        player_id_command = Message(MessageType.PLAYER_ID, [new_player_id])
-        self.send_command(client, player_id_command)
+            new_player_id = self.__get_new_player_id()
+            player_id_command = Message(MessageType.PLAYER_ID, [new_player_id])
+            self.send_command(client, player_id_command)
 
-        threading.Thread(target=self.handle_connection, args=(client,)).start()  # start threading immediately
+            threading.Thread(target=self.handle_connection, args=(client, new_player_id,)).start()  # start thread for this client
+
         self.executive_logic.run_game()
         server.close()  # handle one game
 
@@ -166,17 +167,23 @@ class GameServer(Messenger):
         self.next_player_id += 1
         return tmp
 
-    def handle_connection(self, client):
+    def handle_connection(self, client, this_player_id):
         """
 		Handle incoming requests from ExecLogic and Client.
 		Runs in a separate thread for the duration of the game.
+		Separate thread for each player.
 		:param client: Instance of Client
+		:param this_player_id: ID of this client's player
 		:return: void
 		"""
         logging.info("Handling client connections...")
 
         while self.executive_logic.is_game_running:  # Loop while game is running
-            if self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
+            if self.executive_logic.waiting_on_player_id != this_player_id \
+                    or self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client, if server is handling another client or if QueryStatus is STANDBY
+                continue
+
+            elif self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
                 print("\n\n=====================================================\n\n")
                 parsed_message = self.buffer_message(client)  # Wait for client response
                 self.executive_logic.store_query(parsed_message.code,
@@ -189,32 +196,6 @@ class GameServer(Messenger):
                 self.send_command(client, command)  # Send Message to client
                 self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
 
-            elif self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client
-                continue
-
             else:
                 # raise Exception("Unknown query status %s in server!", self.executive_logic.query_status)
                 pass
-
-    ##########
-    # TODO: Deprecated functions below this point?
-    ##########
-
-    def refresh_score(self, score):
-        """
-		Send out the updated score to the clients
-
-		Args:
-		score: updated score
-
-		Returns:
-			None
-		"""
-
-        pass
-
-    def refresh_display(self, category, score):
-        pass
-
-    def spin_again(self):
-        pass

@@ -251,7 +251,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
-                [player_id, jeopardy_category, tile] = parsed_message.args
+                [jeopardy_category, tile] = parsed_message.args
 
                 lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}", padding="10",
                                          width="300")
@@ -260,8 +260,7 @@ class Client(Messenger):
 
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
-                [player_id,
-                 open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 prompt_text = "Player's Choice: select a question category for your turn"
                 lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
@@ -271,8 +270,7 @@ class Client(Messenger):
                 self.prompt_category_choice(open_categories, MessageType.PLAYERS_CHOICE)
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id,
-                 open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
                 lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
@@ -282,7 +280,7 @@ class Client(Messenger):
                 self.prompt_category_choice(open_categories, MessageType.OPPONENTS_CHOICE)
 
             elif parsed_message.code == MessageType.SPIN:
-                [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                _ = parsed_message.args
 
                 self.load_spin_frame()
 
@@ -295,8 +293,8 @@ class Client(Messenger):
 
                 ### BEGIN TEXT INTERFACE ###
                 print("\n==========================\nEND OF GAME\n==========================\n")
-                print(f"Player {winner_player_id} has won!")
-                input("Press enter to end the game")
+                print(f"Player {winner_player_id} has won!\n\n")
+                #input("Press enter to end the game")
                 #### END TEXT INTERFACE ####
 
                 self.game_over = True
