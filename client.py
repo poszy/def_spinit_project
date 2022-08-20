@@ -94,6 +94,7 @@ class Client(Messenger):
 
         # Create Wheel Frame
         self.wheel_frame_2 = ttk.Frame(self.note)
+        self.populate_spin_frame()
 
         # Add Frame to Notebook
         self.note.add(self.wheel_frame_2)
@@ -108,7 +109,7 @@ class Client(Messenger):
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
-        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.populate_spin_frame)
+        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.connect_to_game)
         self.btn_play.pack(side=BOTTOM, padx=50)
 
         """
@@ -149,11 +150,9 @@ class Client(Messenger):
         self.note.select(2)
 
     def populate_spin_frame(self):
-        self.load_spin_frame()
         #### END TEXT INTERFACE ####
         self.btn_spin = ttk.Button(self.wheel_frame_2, text="Spin the Wheel", command=self.send_spin_command)
         self.btn_spin.pack(side=BOTTOM, padx=50)
-        self.connect_to_game(self.host_ip, self.srv_port)
 
     def prompt_jeopardy_question(self, tile):
 
@@ -221,15 +220,17 @@ class Client(Messenger):
         self.send_command(self.server, Message(MessageType.SPIN, cc))
         self.load_prompt_frame()
 
-    def connect_to_game(self, host, port):
+    def connect_to_game(self):
         """
         Connects client to a game server. Called once, before the beginning of the game.
         Spawns new thread for handle_connection.
         """
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # another TCP socket
-        self.server.connect((host, port))
+        self.server.connect((self.host_ip, self.srv_port))
+        self.load_prompt_frame()
         logging.info("Connecting to the game self.server")
         threading.Thread(target=self.handle_connection, args=(self.server,)).start()  # start threading immediately
+
 
     def handle_connection(self, server):
         """
@@ -276,8 +277,7 @@ class Client(Messenger):
                 self.prompt_category_choice(open_categories, MessageType.PLAYERS_CHOICE)
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
-                [player_id,
-                 open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
                 lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
@@ -287,7 +287,7 @@ class Client(Messenger):
                 self.prompt_category_choice(open_categories, MessageType.OPPONENTS_CHOICE)
 
             elif parsed_message.code == MessageType.SPIN:
-                [player_id] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+                _ = parsed_message.args
 
                 self.load_spin_frame()
 
@@ -310,6 +310,7 @@ class Client(Messenger):
                 lbl_winner.pack(side=TOP)
 
                 self.game_over = True
+                response_info = []
 
             elif parsed_message.code == MessageType.UPDATE_SCORES:
                 [scores_dict, tokens_dict, num_spins_remaining] = parsed_message.args
