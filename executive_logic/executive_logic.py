@@ -36,6 +36,7 @@ class ExecutiveLogic:
         self.query_status = QueryStatus.STANDBY
         self.query_response = Message(MessageType.EMPTY, [])
         self.waiting_on_player_id = None
+        self.curr_round = 0
 
     def run_game(self):
         """
@@ -47,6 +48,7 @@ class ExecutiveLogic:
             self.score_keeper.initialize_player(player_id)
 
         for round_num in range(0, NUM_ROUNDS):
+            self.curr_round = round_num
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
             self.__execute_round(round_num)
@@ -114,8 +116,13 @@ class ExecutiveLogic:
         elif wheel_result == Sector.PLAYERS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
             self.__query_server(curr_player_id, MessageType.PLAYERS_CHOICE, [open_categories])
-            _, [chosen_category] = self.query_response.code, self.query_response.args
 
+            _, chosen_category = self.query_response.code, self.query_response.args
+            if len(chosen_category) == 1:
+                chosen_category = chosen_category[0]
+            elif len(chosen_category) > 1:  # this is weird...
+                print("chosen_category has more than one entry")
+                print(chosen_category)
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
@@ -125,8 +132,13 @@ class ExecutiveLogic:
             open_categories = self.board.get_available_categories(round_num)
             random_opponent_id = self.__select_rand_opponent(curr_player_id)
             self.__query_server(random_opponent_id, MessageType.OPPONENTS_CHOICE, [open_categories])
-            _, [chosen_category] = self.query_response.code, self.query_response.args
-
+            _, chosen_category = self.query_response.code, self.query_response.args
+            if len(chosen_category) == 1:
+                chosen_category = chosen_category[0]
+            elif len(chosen_category) > 1 or len(chosen_category) ==0:  # this is weird...
+                print("chosen_category has more than one entry")
+                print(chosen_category)
+                chosen_category = open_categories[0]
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
@@ -146,7 +158,13 @@ class ExecutiveLogic:
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
         self.__query_server(curr_player_id, MessageType.JEOPARDY_QUESTION,
                             [jeopardy_category, tile])  # Display tile to user, wait for response
-        _, [user_answer] = self.query_response.code, self.query_response.args
+
+        _, user_answer = self.query_response.code, self.query_response.args
+        if len(user_answer) == 1:
+            user_answer = user_answer[0]
+        elif len(user_answer) > 1:  # this is weird...
+            print("user_answer has more than one entry")
+            print(user_answer)
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
         self.__update_scores_tokens_spins(curr_player_id)
@@ -221,7 +239,7 @@ class ExecutiveLogic:
         """
         self.__query_server(curr_player_id, MessageType.UPDATE_SCORES,
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
-                             MAX_SPINS - self.num_spins])
+                             MAX_SPINS - self.num_spins, self.curr_round])
 
     def __notify_all_players(self, command: MessageType, args: list):
         """

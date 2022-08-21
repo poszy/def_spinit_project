@@ -10,16 +10,18 @@ class S:
         self.main_lbl_current_turn="Current Turn: Player "
         self.main_lbl_actual_turn="Player 0"
         self.main_lbl_current_tokens=" Free Pass Tokens:  "
-
+        self.main_lbl_spins_remain = "Spins Remaining in Round: "
 
         # Lobby Strings
         self.lobby_title_bar = "Woj - Lobby"
-        self.lobby_player_wait = "It is not your turn just yet. Please wait"
+        self.player_wait_str = "It is not your turn just yet, please wait."
+        self.player_turn_spin = "It's your turn, please spin the wheel by pressing the button"
+
 
         # Wheel Gui Strings
         self.wheel_title_bar_w = "Woj - Wheel"
         self.wheel_frame="Frame Spin:  "
-        self.wheel_btn_spin="Spin"
+        self.wheel_btn_spin="Spin the Wheel"
 
 
         # Question Strings
