@@ -3,11 +3,17 @@ from ui.user_interface import UserInterface
 import socket
 import threading
 import logging
+import tkinter
 from tkinter import *
 from tkinter import ttk
 from server import Message, QueryStatus, MessageType, Messenger
 from ui import s
 from tkinter.messagebox import showinfo
+
+import random
+import time
+import tkinter
+from PIL import Image, ImageTk
 
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
@@ -101,12 +107,22 @@ class Client(Messenger):
         self.note.pack(expand=1, fill='both', padx=5, pady=5)
         self.category_selected = StringVar()
 
-        # Create Question Frame
-        self.question_frame_3 = ttk.Frame(self.note)
+
+        # Create Spinning Wheel Frame
+        self.spinning_wheel_frame_3 = ttk.Frame(self.note)
+        #self.populate_spin_frame()
 
         # Add Frame to Notebook
-        self.note.add(self.question_frame_3)
+        self.note.add(self.spinning_wheel_frame_3)
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
+
+
+        # Create Question Frame
+        self.question_frame_4 = ttk.Frame(self.note)
+
+        # Add Frame to Notebook
+        self.note.add(self.question_frame_4)
+        self.note.pack(expand=3, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
         self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.connect_to_game)
@@ -146,8 +162,48 @@ class Client(Messenger):
     def load_spin_frame(self):
         self.note.select(1)
 
-    def load_prompt_frame(self):
+
+        self.canvas = tkinter.Canvas(self.wheel_frame_2, width=1000, height=1200)
+
+
+        # Create a Label Widget to display the text or Image
+        self.lbl_wheel_arrow = ttk.Label(self.canvas, text="↓", font=("Helvetica", 45))
+        self.lbl_wheel_arrow.place(x=500, y=100)
+
+        self.filename = 'blank.png'
+        self.image = Image.open(self.filename)
+        self.tkimage = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(500, 500, image=self.tkimage)
+
+        self.btn_spin = ttk.Button(self.canvas, text="Spin the Wheel", command=self.load_wheel_spinning_frame)
+        self.btn_spin.place(x=500, y=900)
+
+        self.canvas.place(x=0, y=0)
+
+    def load_wheel_spinning_frame(self):
         self.note.select(2)
+
+        self.filename = 'ui/ROUND1.png'
+        self.canvas = tkinter.Canvas(self.spinning_wheel_frame_3, width=1000, height=1200)
+
+        self.canvas.place(x=0,y=0)
+
+        # Create a Label Widget to display the text or Image
+        self.lbl_wheel_arrow = ttk.Label(self.canvas, text="↓", font=("Helvetica", 45))
+        self.lbl_wheel_arrow.place(x=500, y=100)
+
+        self.process_next_frame = self.draw().__next__  # Using "next(self.draw())" doesn't work
+        self.iterations = [24,60,96,120,156,180,216,240,276,300,336,360]
+        self.wheel_frame_2.after(3, self.process_next_frame)
+
+        self.btn_ctn = ttk.Button(self.canvas, text="Continue", command=self.load_prompt_frame)
+        self.btn_ctn.place(x=500, y=900)
+
+
+
+
+    def load_prompt_frame(self):
+        self.note.select(3)
 
     def populate_spin_frame(self):
         #### END TEXT INTERFACE ####
@@ -158,7 +214,7 @@ class Client(Messenger):
 
         a = str(tile.question)
 
-        lbl_player_question = ttk.Label(self.question_frame_3, text=a, padding="10", width="300")
+        lbl_player_question = ttk.Label(self.question_frame_4, text=a, padding="10", width="300")
         lbl_player_question.pack(side=TOP)
         print(str(tile.question))
         an = tile.answers
@@ -168,7 +224,7 @@ class Client(Messenger):
         ## radio buttons
         for c in tile.answers:
             r = ttk.Radiobutton(
-                self.question_frame_3,
+                self.question_frame_4,
                 text=c,
                 value=c,
                 variable=self.gAnswers,
@@ -178,7 +234,7 @@ class Client(Messenger):
 
         ## Submit button
         btn_submit = ttk.Button(
-            self.question_frame_3,
+            self.question_frame_4,
             text=self.strl.question_btn_submit,
             command=self.submit_answer
         )
@@ -192,7 +248,7 @@ class Client(Messenger):
         ## radio buttons
         for category in options:
             r = ttk.Radiobutton(
-                self.question_frame_3,
+                self.question_frame_4,
                 text=category,
                 value=category,
                 variable=self.category_selected,
@@ -203,7 +259,7 @@ class Client(Messenger):
         ## Submit button
 
         btn_submit = ttk.Button(
-            self.question_frame_3,
+            self.question_frame_4,
             text=self.strl.category_btn_submit,
             # use lambda function to include parameters to button call
             command=lambda: self.submit_category_choice(messageType)
@@ -258,7 +314,7 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
                 [jeopardy_category, tile] = parsed_message.args
 
-                lbl_category = ttk.Label(self.question_frame_3, text=f"Category: {jeopardy_category}: {tile.points}", padding="10",
+                lbl_category = ttk.Label(self.question_frame_4, text=f"Category: {jeopardy_category}: {tile.points}", padding="10",
                                          width="300")
                 lbl_category.pack(side=TOP)
 
@@ -269,7 +325,7 @@ class Client(Messenger):
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 prompt_text = "Player's Choice: select a question category for your turn"
-                lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
+                lbl_category = ttk.Label(self.question_frame_4, text=prompt_text, padding="10",
                                          width="300")
                 lbl_category.pack(side=TOP)
 
@@ -279,7 +335,7 @@ class Client(Messenger):
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
                 prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
-                lbl_category = ttk.Label(self.question_frame_3, text=prompt_text, padding="10",
+                lbl_category = ttk.Label(self.question_frame_4, text=prompt_text, padding="10",
                                          width="300")
                 lbl_category.pack(side=TOP)
 
@@ -295,7 +351,7 @@ class Client(Messenger):
                 [winner_player_id] = parsed_message.args
 
                 self.load_prompt_frame()
-                self.__clear_frame(self.question_frame_3)
+                self.__clear_frame(self.question_frame_4)
                 if len(winner_player_id) == 2:  # in case there is a tie for winner
                     game_end_text = f"Game over... \nPlayers {winner_player_id[0]} and {winner_player_id[1]} have won the game!"
                 elif len(winner_player_id) >2:
@@ -304,7 +360,7 @@ class Client(Messenger):
                 else:
                     game_end_text = f"Game over... \nPlayer {winner_player_id} has won the game!"
 
-                lbl_winner = ttk.Label(self.question_frame_3, text=game_end_text, padding="10",
+                lbl_winner = ttk.Label(self.question_frame_4, text=game_end_text, padding="10",
                                          width="300")
                 lbl_winner.pack(side=TOP)
 
@@ -338,7 +394,8 @@ class Client(Messenger):
             # self.send_command(self.server, Message(parsed_message.code, response_info))
 
     def __prompt_user_from_list(self, prompt_list: list):
-        """
+        """from PIL import Image, ImageTk
+
         Print out the contents of a list, and prompt the user to pick one.
         :param prompt_list: List of strings to pick from (e.g. a list of answers to a Jeopardy question)
         :return: (string) The answer that the user selected
@@ -411,7 +468,7 @@ class Client(Messenger):
         self.send_command(self.server, Message(messageType, response_info))
 
         # clear the screen of the question and answers
-        self.__clear_frame(self.question_frame_3)
+        self.__clear_frame(self.question_frame_4)
 
     def submit_answer(self):
         userAnswer = self.gAnswers.get()
@@ -422,7 +479,104 @@ class Client(Messenger):
         self.send_command(self.server, Message(MessageType.JEOPARDY_QUESTION, response_info))
 
         # clear the screen of the question and answers
-        self.__clear_frame(self.question_frame_3)
+        self.__clear_frame(self.question_frame_4)
+
+    def draw(self):
+
+
+        self.wheel_frame_2.after(3, self.process_next_frame)
+
+
+        image = Image.open(self.filename)
+        #tkimage = ImageTk.PhotoImage(image.rotate(angle))
+        #canvas_obj = self.canvas.create_image(500, 500, image=tkimage)
+        # Create a photoimage object of the image in the path
+        # Create an object of tkinter ImageTk
+
+
+        angle = 0
+        print(self.process_next_frame)
+
+        n = 0
+        rr = random.choice(self.iterations)
+
+        print( "Random iteration: " + str (rr))
+        spin_time = rr + 372
+        print(spin_time)
+
+        while n <= spin_time:
+            tkimage = ImageTk.PhotoImage(image.rotate(angle))
+            canvas_obj = self.canvas.create_image(500, 500, image=tkimage)
+
+            #Process next frame
+            self.wheel_frame_2.after_idle(self.process_next_frame)
+
+            # Delete previous state of image
+            yield
+            self.canvas.delete(canvas_obj)
+
+            # Angle controls the speed
+            angle += 12
+
+
+            angle %= 360
+            time.sleep(0.002)
+            print(n)
+
+            # Keeping up with frames.
+            n = n + 12
+
+            if n == spin_time:
+
+                if rr == 60:
+
+                    print("catagory 1")
+
+                elif rr == 96:
+
+                    print("catagory 2")
+
+                elif rr == 120:
+
+                    print("catagory 3")
+
+                elif rr == 156:
+
+                    print("catagory  4")
+
+                elif rr == 180:
+
+                    print("catagory 5")
+
+                elif rr == 216:
+
+                    print("catagory 6")
+
+                elif rr == 240:
+
+                    print("catagory 7")
+                elif rr == 276:
+
+                    print("catagory 8")
+                elif rr == 300:
+
+                    print("catagory 9")
+                elif rr == 336:
+
+                    print("catagory 10")
+
+                elif rr == 360:
+                    print("catagory 11")
+
+                else:
+                    print("catagory 0")
+
+                #time.sleep(1)
+        print("hsadsadsa")
+        #self.note.select(3)
+        self.canvas.delete(canvas_obj)
+        time.sleep(2)
+        self.send_spin_command()
 
 
 gameplayer = Client(SRV_IP, SRV_PORT)
