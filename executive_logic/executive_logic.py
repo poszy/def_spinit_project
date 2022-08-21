@@ -148,7 +148,12 @@ class ExecutiveLogic:
         tile = self.board.get_tile(jeopardy_category, round_num)  # Get tile from board
         self.__query_server(curr_player_id, MessageType.JEOPARDY_QUESTION,
                             [jeopardy_category, tile])  # Display tile to user, wait for response
-        _, [user_answer] = self.query_response.code, self.query_response.args
+
+        _, user_answer = self.query_response.code, self.query_response.args
+        if len(user_answer) == 1:
+            user_answer = user_answer[0]
+        if len(user_answer) > 1:  # this is weird...
+            print("user_answer has more than one entry")
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
         self.__update_scores_tokens_spins(curr_player_id)
