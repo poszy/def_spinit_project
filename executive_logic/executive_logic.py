@@ -47,7 +47,7 @@ class ExecutiveLogic:
         for player_id in self.game_server.players:
             self.score_keeper.initialize_player(player_id)
 
-        for round_num in range(0, NUM_ROUNDS):
+        for round_num in range(1, NUM_ROUNDS+1):
             self.curr_round = round_num
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
