@@ -69,11 +69,6 @@ class Client(Messenger):
         lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
         lbl_score.pack(side=LEFT)
         self.label_score_val.set(self.strl.main_lbl_current_score + "0")
-        #
-        # self.label_current_turn_val = StringVar()
-        # lbl_turn = ttk.Label(self.frame_top, textvariable=self.label_current_turn_val, padding="10", width="20")
-        # lbl_turn.pack(side=LEFT)
-        # self.label_current_turn_val.set(self.strl.main_lbl_current_turn + "0")
 
         self.label_tokens_val = StringVar()
         lbl_token = ttk.Label(self.frame_top, textvariable=self.label_tokens_val, padding="10", width="20")
