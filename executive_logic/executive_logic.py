@@ -120,8 +120,9 @@ class ExecutiveLogic:
             _, chosen_category = self.query_response.code, self.query_response.args
             if len(chosen_category) == 1:
                 chosen_category = chosen_category[0]
-            if len(chosen_category) > 1:  # this is weird...
-                print("user_answer has more than one entry")
+            elif len(chosen_category) > 1:  # this is weird...
+                print("chosen_category has more than one entry")
+                print(chosen_category)
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
@@ -135,7 +136,8 @@ class ExecutiveLogic:
             if len(chosen_category) == 1:
                 chosen_category = chosen_category[0]
             elif len(chosen_category) > 1 or len(chosen_category) ==0:  # this is weird...
-                print("user_answer has more than one entry")
+                print("chosen_category has more than one entry")
+                print(chosen_category)
                 chosen_category = open_categories[0]
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
@@ -160,8 +162,9 @@ class ExecutiveLogic:
         _, user_answer = self.query_response.code, self.query_response.args
         if len(user_answer) == 1:
             user_answer = user_answer[0]
-        if len(user_answer) > 1:  # this is weird...
+        elif len(user_answer) > 1:  # this is weird...
             print("user_answer has more than one entry")
+            print(user_answer)
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
         self.__update_scores_tokens_spins(curr_player_id)
