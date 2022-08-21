@@ -217,6 +217,18 @@ class Client(Messenger):
         self.__clear_frame(self.prompt_frame_3)
         self.load_prompt_frame()
 
+        if messageType == MessageType.PLAYERS_CHOICE:
+            prompt_text = "Player's Choice: select a question category for your turn"
+            lbl_category = ttk.Label(self.prompt_frame_3, text=prompt_text, padding="10",
+                                     width="300")
+            lbl_category.pack(side=TOP)
+        elif messageType == MessageType.OPPONENTS_CHOICE:
+
+            prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
+            lbl_category = ttk.Label(self.prompt_frame_3, text=prompt_text, padding="10",
+                                     width="300")
+            lbl_category.pack(side=TOP)
+
         self.category_selected = StringVar()
         self.category_selected.set(options[0])  #give this a default value in case the user doesn't select one
         ## radio buttons
@@ -246,8 +258,7 @@ class Client(Messenger):
         self.lbl_selected_category.pack()
 
     def send_spin_command(self):
-        cc = self.category_selected.get()
-        self.send_command(self.server, Message(MessageType.SPIN, cc))
+        self.send_command(self.server, Message(MessageType.SPIN, []))
         self.load_prompt_frame()
 
     def connect_to_game(self):
@@ -299,20 +310,12 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-                prompt_text = "Player's Choice: select a question category for your turn"
-                lbl_category = ttk.Label(self.prompt_frame_3, text=prompt_text, padding="10",
-                                         width="300")
-                lbl_category.pack(side=TOP)
-
                 self.prompt_category_choice(open_categories, MessageType.PLAYERS_CHOICE)
 
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-                prompt_text = "Opponent's Choice: select a question category for your opponent to answer"
-                lbl_category = ttk.Label(self.prompt_frame_3, text=prompt_text, padding="10",
-                                         width="300")
-                lbl_category.pack(side=TOP)
+
 
                 self.prompt_category_choice(open_categories, MessageType.OPPONENTS_CHOICE)
 

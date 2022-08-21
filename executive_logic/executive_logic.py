@@ -116,8 +116,12 @@ class ExecutiveLogic:
         elif wheel_result == Sector.PLAYERS_CHOICE:
             open_categories = self.board.get_available_categories(round_num)
             self.__query_server(curr_player_id, MessageType.PLAYERS_CHOICE, [open_categories])
-            _, [chosen_category] = self.query_response.code, self.query_response.args
 
+            _, chosen_category = self.query_response.code, self.query_response.args
+            if len(chosen_category) == 1:
+                user_answer = chosen_category[0]
+            if len(chosen_category) > 1:  # this is weird...
+                print("user_answer has more than one entry")
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
@@ -127,8 +131,11 @@ class ExecutiveLogic:
             open_categories = self.board.get_available_categories(round_num)
             random_opponent_id = self.__select_rand_opponent(curr_player_id)
             self.__query_server(random_opponent_id, MessageType.OPPONENTS_CHOICE, [open_categories])
-            _, [chosen_category] = self.query_response.code, self.query_response.args
-
+            _, chosen_category = self.query_response.code, self.query_response.args
+            if len(chosen_category) == 1:
+                user_answer = chosen_category[0]
+            if len(chosen_category) > 1:  # this is weird...
+                print("user_answer has more than one entry")
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
