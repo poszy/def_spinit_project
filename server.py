@@ -58,7 +58,7 @@ class MessageType(Enum):
     # Response Args:	[]
 
     UPDATE_SCORES = 7  # Called to tell server updated game values, to display to client.
-    # Request  Args: 	[scores_dict, tokens_dict, num_spins]
+    # Request  Args: 	[scores_dict, tokens_dict, num_spins, curr_round]
     # Response Args:	[]
 
     UPDATE_BOARD = 8  # Called at the start of the round, to tell server/client what the board looks like

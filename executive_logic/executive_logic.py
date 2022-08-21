@@ -36,6 +36,7 @@ class ExecutiveLogic:
         self.query_status = QueryStatus.STANDBY
         self.query_response = Message(MessageType.EMPTY, [])
         self.waiting_on_player_id = None
+        self.curr_round = 0
 
     def run_game(self):
         """
@@ -47,6 +48,7 @@ class ExecutiveLogic:
             self.score_keeper.initialize_player(player_id)
 
         for round_num in range(0, NUM_ROUNDS):
+            self.curr_round = round_num
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
             self.__execute_round(round_num)
@@ -221,7 +223,7 @@ class ExecutiveLogic:
         """
         self.__query_server(curr_player_id, MessageType.UPDATE_SCORES,
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
-                             MAX_SPINS - self.num_spins])
+                             MAX_SPINS - self.num_spins, self.curr_round])
 
     def __notify_all_players(self, command: MessageType, args: list):
         """
