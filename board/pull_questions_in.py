@@ -61,7 +61,7 @@ class TileLoader:
         """
         ans_choices_by_category = defaultdict(set)
         dict_from_csv = defaultdict(list)
-        with open(filename, mode='r') as csv_file:
+        with open(filename, mode='r', encoding = "ISO-8859-1") as csv_file:
             csv_reader = csv.DictReader(csv_file)
             line_count = 0
             for row in csv_reader:
