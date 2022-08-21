@@ -119,7 +119,7 @@ class ExecutiveLogic:
 
             _, chosen_category = self.query_response.code, self.query_response.args
             if len(chosen_category) == 1:
-                user_answer = chosen_category[0]
+                chosen_category = chosen_category[0]
             if len(chosen_category) > 1:  # this is weird...
                 print("user_answer has more than one entry")
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
@@ -133,9 +133,10 @@ class ExecutiveLogic:
             self.__query_server(random_opponent_id, MessageType.OPPONENTS_CHOICE, [open_categories])
             _, chosen_category = self.query_response.code, self.query_response.args
             if len(chosen_category) == 1:
-                user_answer = chosen_category[0]
-            if len(chosen_category) > 1:  # this is weird...
+                chosen_category = chosen_category[0]
+            elif len(chosen_category) > 1 or len(chosen_category) ==0:  # this is weird...
                 print("user_answer has more than one entry")
+                chosen_category = open_categories[0]
             is_correct = self.__execute_category(chosen_category, curr_player_id, round_num)
             if is_correct:  # If player is correct, they spin again
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
