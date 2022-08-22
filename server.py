@@ -3,7 +3,7 @@ import pickle
 from enum import Enum
 import socket
 import threading
-
+import select
 logging.basicConfig(level=logging.INFO)
 HEADER_SIZE = 10
 
@@ -13,7 +13,6 @@ HEADER_SIZE = 10
 
 MAX_SPINS = 3
 BYTE_ENCODING = 'utf-8'
-
 
 class QueryStatus(Enum):
     SERVER_TO_CLIENT = 1  # Information is being sent from Executive Logic to Server to Client
@@ -81,6 +80,26 @@ class Messenger:
         self.host_ip = srv_ip
         self.port = srv_port
 
+    def select_readable(self, client_list):
+        timeout = 1
+        ready_to_read, ready_to_write, in_error = \
+            select.select(
+                client_list,
+                [],
+                [],
+                timeout)
+        return ready_to_read
+
+    def select_writeable(self, client_list):
+        timeout = 1
+        ready_to_write, ready_to_write, in_error = \
+            select.select(
+                [],
+                client_list,
+                [],
+                timeout)
+        return ready_to_write
+
     def send_command(self, client, command):
         command = pickle.dumps(command)
         msg = bytes(f"{len(command):<{HEADER_SIZE}}", BYTE_ENCODING) + command  # add fixed length header to message
@@ -124,78 +143,83 @@ class GameServer(Messenger):
         super().__init__(srv_ip, srv_port)
         self.host_ip = srv_ip
         self.port = srv_port
+        self.num_players = num_players
+
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup self.server_socket socket
+        self.server_socket.bind((self.host_ip, self.port))
+        logging.info("self.server_socket starting a game, listening for players on port: " + str(self.port))
+        self.server_socket.listen(self.num_players)  # listen for players to join
+        self.sockets_list = [self.server_socket]
+        self.client_sock_dict = {}  # playerID: client socket
+
         self.executive_logic = executive_logic
 
         self.whose_turn = 1  # pointer to current player taking turn
         self.game_over = False
 
-        self.num_players = num_players
         self.next_player_id = 0
         self.players = []  # keep track of players
 
     def host_game(self):
         """
-		Game setup. Called once, before the start of the game, by main.py.
-		:return: void
-		"""
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # setup server socket
-        server.bind((self.host_ip, self.port))
-        logging.info("server starting a game, listening for players on port: " + str(self.port))
-        server.listen(self.num_players)  # listen for players to join
-
+        Game setup. Called once, before the start of the game, by main.py.
+        :return: void
+        """
         # send each new player their playerID
         for _ in range(self.num_players):
             logging.info("Adding player %d", self.next_player_id)
-            client, addr = server.accept()  # next player connection
-
+            client_sock, addr = self.server_socket.accept()  # next player connection
             new_player_id = self.__get_new_player_id()
-            player_id_command = Message(MessageType.PLAYER_ID, [new_player_id])
-            self.send_command(client, player_id_command)
+            self.client_sock_dict[new_player_id] = client_sock  # add them to the client socket dict
 
-            threading.Thread(target=self.handle_connection, args=(client, new_player_id,)).start()  # start thread for this client
+            player_id_command = Message(MessageType.PLAYER_ID, [new_player_id])
+            self.send_command(client_sock, player_id_command)
+            # threading.Thread(target=self.handle_connection, args=(client_sock, new_player_id,)).start()  # start thread for this client_sock
 
         self.executive_logic.run_game()
-        server.close()  # handle one game
+        self.server_socket.close()  # handle one game
 
     def __get_new_player_id(self):
         """
-		Assigns new player a unique ID, and adds them to the player list
-		:return: (int) Unique ID for a new player
-		"""
+        Assigns new player a unique ID, and adds them to the player list
+        :return: (int) Unique ID for a new player
+        """
         self.players.append(self.next_player_id)
         tmp = self.next_player_id
         self.next_player_id += 1
         return tmp
 
-    def handle_connection(self, client, this_player_id):
+    def handle_connection(self):
         """
-		Handle incoming requests from ExecLogic and Client.
-		Runs in a separate thread for the duration of the game.
-		Separate thread for each player.
-		:param client: Instance of Client
-		:param this_player_id: ID of this client's player
-		:return: void
-		"""
-        logging.info("Handling client connections...")
+        Handle incoming requests from ExecLogic and Client.
+        Runs in a separate thread for the duration of the game.
+        Separate thread for each player.
+        :param client: Instance of Client
+        :param this_player_id: ID of this client's player
+        :return: void
+        """
+        # logging.info("Handling client connections...")
 
-        while self.executive_logic.is_game_running:  # Loop while game is running
-            if self.executive_logic.waiting_on_player_id != this_player_id \
-                    or self.executive_logic.query_status == QueryStatus.STANDBY:  # Wait for next request from exec or client, if server is handling another client or if QueryStatus is STANDBY
-                continue
-
-            elif self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
-                print("\n\n=====================================================\n\n")
-                parsed_message = self.buffer_message(client)  # Wait for client response
-                self.executive_logic.store_query(parsed_message.code,
-                                                 parsed_message.args)  # Store client response in executive logic
-                logging.info("Server received message from client: %s", parsed_message.code)
-                self.executive_logic.query_status = QueryStatus.STANDBY  # Reset query status to standby
+        if self.executive_logic.waiting_on_player_id is not None:
+            client = self.client_sock_dict[self.executive_logic.waiting_on_player_id]  # just one client at a time right now
+            if self.executive_logic.query_status == QueryStatus.CLIENT_TO_SERVER:  # Wait for response from client
+                read_sockets = self.select_readable([client])
+                for notified_socket in read_sockets:
+                    if notified_socket != self.server_socket:
+                        print("\n\n=====================================================\n\n")
+                        parsed_message = self.buffer_message(notified_socket)  # Wait for client response
+                        self.executive_logic.store_query(parsed_message.code,
+                                                         parsed_message.args)  # Store client response in executive logic
+                        logging.info("Server received message from client: %s", parsed_message.code)
+                        self.executive_logic.query_status = QueryStatus.STANDBY  # Reset query status to standby
 
             elif self.executive_logic.query_status == QueryStatus.SERVER_TO_CLIENT:  # Send message to client
-                command = self.executive_logic.server_message  # Get Message from server
-                self.send_command(client, command)  # Send Message to client
-                self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
-
+                client = self.client_sock_dict[self.executive_logic.waiting_on_player_id]  # just one client at a time right now
+                write_sockets = self.select_writeable([client])
+                for write_client in write_sockets:
+                    command = self.executive_logic.server_message  # Get Message from server
+                    self.send_command(write_client, command)  # Send Message to client
+                    self.executive_logic.query_status = QueryStatus.CLIENT_TO_SERVER  # Switch query status to listen for response from client (#TODO: this means the client will be required to send some response for every message, including things like "update scores" when it really has nothing to say. Change?)
             else:
                 # raise Exception("Unknown query status %s in server!", self.executive_logic.query_status)
                 pass

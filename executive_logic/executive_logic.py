@@ -218,6 +218,7 @@ class ExecutiveLogic:
         self.query_status = QueryStatus.SERVER_TO_CLIENT  # Tell server we want to query client
 
         while self.query_status is not QueryStatus.STANDBY:  # Wait for a response from the server
+            self.game_server.handle_connection()
             pass
 
         logging.info(f"QUERY_SERVER RESPONSE CODE: {self.query_response.code}")
