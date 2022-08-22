@@ -101,19 +101,19 @@ class ExecutiveLogic:
         elif wheel_result == Sector.LOSE_TURN:
             # TODO: Rewrite to prompt player to use token. Currently just uses a token if it's available.
             if self.score_keeper.use_token(curr_player_id)[0]:  # Use token if available
-                self.__update_scores_tokens_spins(curr_player_id)
+                self.__update_scores_tokens_spins()
                 self.__execute_turn(curr_player_id, round_num)  # Spin again
             else:  # Otherwise, end player turn
                 return
 
         elif wheel_result == Sector.FREE_TURN:
             self.score_keeper.add_token(curr_player_id)  # Give the player a token
-            self.__update_scores_tokens_spins(curr_player_id)
+            self.__update_scores_tokens_spins()
             self.__execute_turn(curr_player_id, round_num)  # Spin
 
         elif wheel_result == Sector.BANKRUPT:
             self.score_keeper.bankrupt(curr_player_id)
-            self.__update_scores_tokens_spins(curr_player_id)
+            self.__update_scores_tokens_spins()
             return  # End player turn
 
         elif wheel_result == Sector.PLAYERS_CHOICE:
@@ -170,7 +170,7 @@ class ExecutiveLogic:
             print(user_answer)
         is_correct, points = tile.check_answer(user_answer)
         self.score_keeper.update_score(curr_player_id, is_correct, points)
-        self.__update_scores_tokens_spins(curr_player_id)
+        self.__update_scores_tokens_spins()
         return is_correct
 
     def __end_game(self):
@@ -234,13 +234,16 @@ class ExecutiveLogic:
         """
         self.query_response = Message(command, args)  # Store server response in self.query_response
 
-    def __update_scores_tokens_spins(self, curr_player_id):
+    def __update_scores_tokens_spins(self):
         """
         Called after a game value is updated that should be reflected in the UI display.
         Sends server the current player scores, player tokens, and number of spins remaining.
         :return: void
         """
-        self.__query_server(curr_player_id, MessageType.UPDATE_SCORES,
+        # self.__query_server(curr_player_id, MessageType.UPDATE_SCORES,
+        #                     [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
+        #                      MAX_SPINS - self.num_spins, self.curr_round])
+        self.__notify_all_players(MessageType.UPDATE_SCORES,
                             [self.score_keeper.get_scores(), self.score_keeper.get_tokens(),
                              MAX_SPINS - self.num_spins, self.curr_round])
 
