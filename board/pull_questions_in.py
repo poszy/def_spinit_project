@@ -170,11 +170,13 @@ class TileLoader:
                         # print(f"old tile points: {tile.points}")
                         tile.points = tile.points * 2
                         # print(f"new tile points: {tile.points}")
-                    doubled_points_cat[points*2] = tile
+                        doubled_points_cat[points*2] = tile
                     rounds[round_num][cat_name] = doubled_points_cat
                 elif round_num == 1:
                     rounds[round_num][cat_name] = tiles_by_category[cat_name]
                 else:
                     # some other round ...?
                     pass
+
+            print(f"Round {round_num} point values: {rounds[round_num].items()}")
         self.rounds = rounds
