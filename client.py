@@ -20,6 +20,7 @@ SRV_IP = 'localhost'
 SRV_PORT = 5555
 BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
+global demo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,6 +33,7 @@ class Client(Messenger):
         self.srv_port = srv_port
         self.player_id = None
         self.game_over = False
+
 
         self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
@@ -49,6 +51,7 @@ class Client(Messenger):
         self.root.title(self.strl.lobby_title_bar)
         self.s = ttk.Style()
         self.s.configure('new.TFrame', background='#7AC5CD')
+
 
         """
         CREATE TOP FRAME
@@ -166,7 +169,7 @@ class Client(Messenger):
         self.canvas = tkinter.Canvas(self.wheel_frame_2, width=1000, height=1200)
 
 
-        # Create a Label Widget to display the text or Image
+        # Create a Label Widgeself.send_spin_command()t to display the text or Image
         self.lbl_wheel_arrow = ttk.Label(self.canvas, text="↓", font=("Helvetica", 45))
         self.lbl_wheel_arrow.place(x=500, y=100)
 
@@ -174,7 +177,7 @@ class Client(Messenger):
         self.image = Image.open(self.filename)
         self.tkimage = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(500, 500, image=self.tkimage)
-
+        self.send_spin_command()
         self.btn_spin = ttk.Button(self.canvas, text="Spin the Wheel", command=self.load_wheel_spinning_frame)
         self.btn_spin.place(x=500, y=900)
 
@@ -183,7 +186,8 @@ class Client(Messenger):
     def load_wheel_spinning_frame(self):
         self.note.select(2)
 
-        self.filename = 'ui/ROUND1.png'
+        self.filename = 'ui/ROUND22.png'
+
         self.canvas = tkinter.Canvas(self.spinning_wheel_frame_3, width=1000, height=1200)
 
         self.canvas.place(x=0,y=0)
@@ -192,8 +196,10 @@ class Client(Messenger):
         self.lbl_wheel_arrow = ttk.Label(self.canvas, text="↓", font=("Helvetica", 45))
         self.lbl_wheel_arrow.place(x=500, y=100)
 
-        self.process_next_frame = self.draw().__next__  # Using "next(self.draw())" doesn't work
-        self.iterations = [24,60,96,120,156,180,216,240,276,300,336,360]
+        self.process_next_frame = self.draw(self.demo).__next__  # Using "next(self.draw())" doesn't work
+
+
+
         self.wheel_frame_2.after(3, self.process_next_frame)
 
         self.btn_ctn = ttk.Button(self.canvas, text="Continue", command=self.load_prompt_frame)
@@ -274,7 +280,7 @@ class Client(Messenger):
     def send_spin_command(self):
         cc = self.category_selected.get()
         self.send_command(self.server, Message(MessageType.SPIN, cc))
-        self.load_prompt_frame()
+        #self.load_prompt_frame()
 
     def connect_to_game(self):
         """
@@ -378,15 +384,80 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.SPIN_RESULT:
                 [spin_result] = parsed_message.args
 
+
                 # TODO (UI): Update the UI to display the result of the previous spin
                 # TODO (UI): Delete text interface code below
 
                 ### BEGIN TEXT INTERFACE ###
+
+                # O(1) Super Algorithm
+
+
                 print(f"You Spun: {spin_result}\n")
+
+                if spin_result == "A IS FOR AUTUMN":
+                    demo = 12
+                elif spin_result == "LOSE TURN":
+                    demo = 36
+                elif spin_result == "UU COMPLETE ME":
+                    demo = 60
+                elif spin_result == "1 WORD, 2 MEANINGS":
+                    demo = 120
+                elif spin_result == "1970s TV":
+                    demo = 132
+                elif spin_result == "3 Ns":
+                    demo = 156
+                elif spin_result == "3 VOWELS IN A ROW":
+                    demo = 216
+                elif spin_result == "4-LETTER WORDS":
+                    demo = 240
+                elif spin_result == "4-SYLLABLE WORDS":
+                    demo = 262
+                elif spin_result == "SPIN AGAIN":
+                    demo = 276
+                elif spin_result == "FREE TOKEN":
+                    demp = 336
+                elif spin_result == '"ISM"s':
+                    demo = 360
+                else:
+                    demo = 0
+
+                ### Round Two Logic xD
+                if spin_result == 'A BOROUGH BURIAL':
+                    demo = 12
+                elif spin_result == "LOSE TURN":
+                    demo = 36
+                elif spin_result == "ACM Awards":
+                    demo = 60
+                elif spin_result == "A SHRUBBERY!":
+                    demo = 120
+                elif spin_result == "AMERICAN HISTORY":
+                    demo = 132
+                elif spin_result == "AFTER MATH":
+                    demo = 156
+                elif spin_result == "ALL MY TROUBLES":
+                    demo = 216
+                elif spin_result == "ALTRUISTIC ATHLETES":
+                    demo = 240
+                elif spin_result == "ALL THINGS BELGIAN":
+                    demo = 262
+                elif spin_result == "SPIN AGAIN":
+                    demo = 276
+                elif spin_result == "FREE TOKEN":
+                    demp = 336
+                elif spin_result == 'BODIES OF WATER':
+                    demo = 360
+                else:
+                    demo = 0
+
+                self.demo = demo
+                print("demo " + str(demo))
+
                 #### END TEXT INTERFACE ####
 
                 response_info = []
                 self.send_command(self.server, Message(parsed_message.code, response_info))
+
 
             else:
                 raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
@@ -481,8 +552,10 @@ class Client(Messenger):
         # clear the screen of the question and answers
         self.__clear_frame(self.question_frame_4)
 
-    def draw(self):
+    def draw(self, iteration):
 
+        demo = iteration
+        print("demo: " + str(demo))
 
         self.wheel_frame_2.after(3, self.process_next_frame)
 
@@ -498,8 +571,8 @@ class Client(Messenger):
         print(self.process_next_frame)
 
         n = 0
-        rr = random.choice(self.iterations)
-
+        #rr = random.choice(self.iterations)
+        rr =  demo
         print( "Random iteration: " + str (rr))
         spin_time = rr + 372
         print(spin_time)
@@ -531,52 +604,62 @@ class Client(Messenger):
                 if rr == 60:
 
                     print("catagory 1")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 96:
 
                     print("catagory 2")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 120:
 
                     print("catagory 3")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 156:
 
                     print("catagory  4")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 180:
 
                     print("catagory 5")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 216:
 
                     print("catagory 6")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 240:
 
                     print("catagory 7")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
                 elif rr == 276:
 
                     print("catagory 8")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
                 elif rr == 300:
 
                     print("catagory 9")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
                 elif rr == 336:
 
                     print("catagory 10")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 elif rr == 360:
                     print("catagory 11")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
                 else:
                     print("catagory 0")
+                    self.demo_catagory='1 WORD, 2 MEANINGS'
 
-                #time.sleep(1)
-        print("hsadsadsa")
-        #self.note.select(3)
         self.canvas.delete(canvas_obj)
         time.sleep(2)
-        self.send_spin_command()
+        self.note.select(3)
+        #self.send_spin_command()
 
 
 gameplayer = Client(SRV_IP, SRV_PORT)

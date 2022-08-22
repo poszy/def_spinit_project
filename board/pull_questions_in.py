@@ -154,11 +154,19 @@ class TileLoader:
         :param tiles_by_category: dictionary. mapping category name to mapping of point value to tile
         :return: rounds: dictionary. mapping round number to categories of tiles
         """
+        round_one = ["A IS FOR AUTUMN","UU COMPLETE ME", '1 WORD, 2 MEANINGS', "1970s TV", "3 Ns", "4-LETTER WORDS", "4-SYLLABLE WORDS", '"ISM"s', "3 VOWELS IN A ROW"]
+
+        round_two = ["A SHRUBBERY!", "ALL THINGS BELGIAN", "BODIES OF WATER", "AFTER MATH", "ALL MY TROUBLES","ALTRUISTIC ATHLETES",'A BOROUGH BURIAL', 'ACM Awards', "AMERICAN HISTORY"]
+        #round_two = []
         rounds = {}
         for round_num in range(1, NUM_ROUNDS + 1):
             rounds[round_num] = {}
-            categories_in_round = random.sample(tiles_by_category.keys(), NUM_CATEGORIES_PER_ROUND)
+            if NUM_ROUNDS == 1:
+                categories_in_round = round_one
             # print(f"chose categories {categories_in_round}")
+            elif NUM_ROUNDS == 2:
+                categories_in_round = round_two
+
             for cat in categories_in_round:
                 rounds[round_num][cat] = tiles_by_category[cat]
 
