@@ -48,8 +48,11 @@ class ExecutiveLogic:
             self.score_keeper.initialize_player(player_id)
 
         for round_num in range(1, NUM_ROUNDS+1):
-            self.wheel = Wheel(self.board.get_available_categories(round_num))  # pull categories from board round
             self.curr_round = round_num
+            self.num_spins = 0
+            if round_num == 2:
+                self.__update_scores_tokens_spins() # update the score so everyone knows the round
+            self.wheel = Wheel(self.board.get_available_categories(round_num))  # pull categories from board round
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
             self.__execute_round(round_num)
@@ -62,7 +65,6 @@ class ExecutiveLogic:
         :param round_num: Number of current round (1 or 2).
         :return: void
         """
-        self.num_spins = 0
         curr_player_id = None
         # End round when spins >= 50 or no available questions
         while self.num_spins < MAX_SPINS and self.board.get_available_categories(round_num):
