@@ -16,6 +16,8 @@ class S:
         self.lobby_title_bar = "Woj - Lobby"
         self.player_wait_str = "It is not your turn just yet, please wait."
         self.player_turn_spin = "It's your turn, please spin the wheel by pressing the button"
+        self.spin_result_label = "Spin Result:"
+        self.continue_button_label = "Continue"
 
 
         # Wheel Gui Strings

@@ -166,12 +166,36 @@ class Client(Messenger):
     def __stop_music(self):
         pygame.mixer.music.stop()
 
+    def prompt_continue_after_spin_result(self):
+        self.btn_spin.pack_forget()  # hide submit button
+
+        self.btn_continue.pack(side=BOTTOM, padx=50)  # put continue button there
+
+    def continue_after_spin_result(self):
+        self.lbl_spin_res.set(self.strl.spin_result_label)  # clear old spin result
+        self.btn_continue.pack_forget()  # hide continue button
+        self.spin_result.pack_forget()  # hide old spin result
+        response_info = []
+        self.send_command(self.server, Message(MessageType.SPIN_RESULT, response_info))
+        self.btn_spin.pack(side=BOTTOM, padx=50)  # put spin button back
+        self.load_prompt_frame()
+
     def populate_spin_frame(self):
         #### END TEXT INTERFACE ####
         lbl_player_question = ttk.Label(self.wheel_frame_2, text=self.strl.player_turn_spin, padding="10", width="300")
         lbl_player_question.pack(side=TOP)
         self.btn_spin = ttk.Button(self.wheel_frame_2, text=self.strl.wheel_btn_spin, command=self.send_spin_command)
-        self.btn_spin.pack(side=BOTTOM, padx=50)
+        self.btn_spin.pack(side=BOTTOM, padx=50)  # put spin button on screen first
+
+        # don's show this yet
+        self.btn_continue = ttk.Button(self.wheel_frame_2, text=self.strl.continue_button_label, command=self.continue_after_spin_result)
+
+        self.lbl_spin_res = StringVar()
+        self.lbl_spin_res.set(self.strl.spin_result_label)
+        self.spin_result = ttk.Label(self.wheel_frame_2, textvar=self.lbl_spin_res,
+                                      padding="10",
+                                      width="300")
+        self.spin_result.pack(side=TOP)
 
     def prompt_jeopardy_question(self, tile, jeopardy_category):
         self.__clear_frame(self.prompt_frame_3)
@@ -254,7 +278,6 @@ class Client(Messenger):
 
     def send_spin_command(self):
         self.send_command(self.server, Message(MessageType.SPIN, []))
-        self.load_prompt_frame()
 
     def connect_to_game(self):
         """
@@ -270,7 +293,7 @@ class Client(Messenger):
                                  width="300")
         lbl_category.pack(side=TOP)
 
-        logging.info("Connecting to the game self.server")
+        logging.info(f"Connecting to the game self.server {self.srv_port}")
         threading.Thread(target=self.handle_connection, args=(self.server,)).start()  # start threading immediately
 
     def handle_connection(self, server):
@@ -297,6 +320,7 @@ class Client(Messenger):
                 raise Exception(f"This client (ID %s) was already assigned a player ID!", self.player_id)
 
             elif parsed_message.code == MessageType.JEOPARDY_QUESTION:
+                self.load_prompt_frame()
                 self.__start_music()
                 [jeopardy_category, tile] = parsed_message.args
 
@@ -310,15 +334,12 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.OPPONENTS_CHOICE:
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
 
-
-
                 self.prompt_category_choice(open_categories, MessageType.OPPONENTS_CHOICE)
 
             elif parsed_message.code == MessageType.SPIN:
                 _ = parsed_message.args
 
                 self.load_spin_frame()
-
 
             elif parsed_message.code == MessageType.END_GAME:
                 [winner_player_id] = parsed_message.args
@@ -358,15 +379,15 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.SPIN_RESULT:
                 [spin_result] = parsed_message.args
 
-                # TODO (UI): Update the UI to display the result of the previous spin
-                # TODO (UI): Delete text interface code below
+                if type(spin_result) == str:
+                    result_str = self.strl.spin_result_label + spin_result
+                else:
+                    result_str = self.strl.spin_result_label + spin_result.value
 
-                ### BEGIN TEXT INTERFACE ###
-                print(f"You Spun: {spin_result}\n")
-                #### END TEXT INTERFACE ####
+                self.lbl_spin_res.set(result_str)
+                self.spin_result.pack(side=TOP)  # show the spin result
 
-                response_info = []
-                self.send_command(self.server, Message(parsed_message.code, response_info))
+                self.prompt_continue_after_spin_result()
 
             else:
                 raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
