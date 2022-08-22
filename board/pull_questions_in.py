@@ -157,10 +157,24 @@ class TileLoader:
         rounds = {}
         for round_num in range(1, NUM_ROUNDS + 1):
             rounds[round_num] = {}
+            # TODO: for the demo, select specific categories as round 1 and round 2, or do it in order of CSV appearance
             categories_in_round = random.sample(tiles_by_category.keys(), NUM_CATEGORIES_PER_ROUND)
-            # print(f"chose categories {categories_in_round}")
-            for cat in categories_in_round:
-                rounds[round_num][cat] = tiles_by_category[cat]
-
-                # TODO: fix point values
+            logging.info(f"Chosen Round {round_num} categories: {categories_in_round}")
+            for cat_name in categories_in_round:
+                if round_num == 2:  # 2nd round, point values doubled
+                    tiles_in_cat = tiles_by_category[cat_name]
+                    # print(f"ROUND: {round_num}, {tiles_in_cat}")
+                    doubled_points_cat = {}
+                    for points, tile in tiles_in_cat.items():
+                        # print(f"tile: {tile}")
+                        # print(f"old tile points: {tile.points}")
+                        tile.points = tile.points * 2
+                        # print(f"new tile points: {tile.points}")
+                    doubled_points_cat[points*2] = tile
+                    rounds[round_num][cat_name] = doubled_points_cat
+                elif round_num == 1:
+                    rounds[round_num][cat_name] = tiles_by_category[cat_name]
+                else:
+                    # some other round ...?
+                    pass
         self.rounds = rounds

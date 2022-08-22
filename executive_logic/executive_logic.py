@@ -24,7 +24,7 @@ class ExecutiveLogic:
             configuration.filename = DEFAULT_QUESTIONS_FILE  # need to use relative path from current working directory of main.py!
         self.board = Board(configuration.filename)  # Board object
         self.score_keeper = ScoreKeeper()  # ScoreKeeper object
-        self.wheel = Wheel(self.board.get_available_categories(1))  # pull categories from board round 1
+        self.wheel = None
         # logging.info(f"added {self.board.get_available_categories(1)} sectors to wheel")
         self.ui = UserInterface()  # UI Object
         logging.info(f"Start server for {configuration.num_players.get()} player(s)")
@@ -47,7 +47,8 @@ class ExecutiveLogic:
         for player_id in self.game_server.players:
             self.score_keeper.initialize_player(player_id)
 
-        for round_num in range(0, NUM_ROUNDS):
+        for round_num in range(1, NUM_ROUNDS+1):
+            self.wheel = Wheel(self.board.get_available_categories(round_num))  # pull categories from board round
             self.curr_round = round_num
             self.board.reset_board(round_num)
             self.score_keeper.new_round()
