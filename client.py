@@ -454,7 +454,7 @@ class Client(Messenger):
                     result_str = self.strl.spin_result_label + spin_result
                 else:
                     spin_result = spin_result.value
-                    result_str = self.strl.spin_result_label + spin_result.value
+                    result_str = self.strl.spin_result_label + spin_result
 
                 self.lbl_spin_res.set(result_str)
                 print(f"secret spin result: {spin_result}")
