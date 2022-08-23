@@ -10,12 +10,18 @@ from ui import s
 import pygame.mixer
 from tkinter.messagebox import showinfo
 
+import random
+import time
+import tkinter
+from PIL import Image, ImageTk
+
 NUM_PLAYERS = 3
 SRV_IP = 'localhost'
 SRV_PORT = 5555
 BYTE_ENCODING = 'utf-8'
 HEADER_SIZE = 10
 MUSIC_FILE = 'resources/audio/Jeopardy-theme-song.mp3'
+# global demo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -89,23 +95,33 @@ class Client(Messenger):
         """
         CREATE SUB FRAMES
         """
-        self.lobby_frame_1 = ttk.Frame(self.note)
-        self.lbl_player_wait = ttk.Label(self.lobby_frame_1,
+        self.lobby_frame_0 = ttk.Frame(self.note)
+        self.lbl_player_wait = ttk.Label(self.lobby_frame_0,
                                          text='Press the button to enter the game.  ',
                                          padding="10", width="300")
         self.lbl_player_wait.pack(side=TOP)
 
         # Add Frame to Notebook. This is the Lobby Frame
-        self.note.add(self.lobby_frame_1)
+        self.note.add(self.lobby_frame_0)
 
         # Create Wheel Frame
-        self.wheel_frame_2 = ttk.Frame(self.note)
-        self.populate_spin_frame()
+        self.spin_prompt_frame_1 = ttk.Frame(self.note)
+        self.populate_spin_prompt_frame()
 
         # Add Frame to Notebook
-        self.note.add(self.wheel_frame_2)
+        self.note.add(self.spin_prompt_frame_1)
         self.note.pack(expand=1, fill='both', padx=5, pady=5)
         self.category_selected = StringVar()
+
+
+        # Create Spinning Wheel Frame
+        self.spinning_wheel_frame_2 = ttk.Frame(self.note)
+        # self.populate_spinning_frame()
+
+        # Add Frame to Notebook
+        self.note.add(self.spinning_wheel_frame_2)
+        self.note.pack(expand=2, fill='both', padx=5, pady=5)
+
 
         # Create Question Frame
         self.prompt_frame_3 = ttk.Frame(self.note)
@@ -113,9 +129,11 @@ class Client(Messenger):
         # Add Frame to Notebook
         self.note.add(self.prompt_frame_3)
         self.note.pack(expand=2, fill='both', padx=5, pady=5)
+        self.note.add(self.prompt_frame_3)
+        self.note.pack(expand=3, fill='both', padx=5, pady=5)
 
         # Wait for Client to send turn signal, for now it is initiated by button
-        self.btn_play = ttk.Button(self.lobby_frame_1, text="Connect to Game", command=self.connect_to_game)
+        self.btn_play = ttk.Button(self.lobby_frame_0, text="Connect to Game", command=self.connect_to_game)
         self.btn_play.pack(side=BOTTOM, padx=50)
 
         """
@@ -154,11 +172,33 @@ class Client(Messenger):
     def load_lobby_frame(self):
         self.note.select(0)
 
-    def load_spin_frame(self):
+    def load_spin_prompt_frame(self):
         self.note.select(1)
 
-    def load_prompt_frame(self):
+        # self.btn_spin = ttk.Button(self.canvas, text="Spin the Wheel", command=self.load_wheel_spinning_frame)
+        # self.btn_spin.place(x=500, y=900)
+
+        # self.send_spin_command()
+
+    def load_wheel_spinning_frame(self):
         self.note.select(2)
+
+        self.filename = 'ui/ROUND1.png'
+
+        self.canvas = tkinter.Canvas(self.spinning_wheel_frame_2, width=1000, height=1200)
+        self.canvas.place(x=0,y=0)
+
+        # Create a Label Widget to display the text or Image
+        self.lbl_wheel_arrow = ttk.Label(self.canvas, text="↓", font=("Helvetica", 45))
+        self.lbl_wheel_arrow.place(x=500, y=100)
+
+        self.process_next_frame = self.draw(self.demo).__next__  # Using "next(self.draw())" doesn't work
+
+        self.spinning_wheel_frame_2.after(3, self.process_next_frame)
+
+
+        # self.btn_ctn = ttk.Button(self.canvas, text="Continue", command=self.load_prompt_frame)
+        # self.btn_ctn.place(x=500, y=900)
 
     def __start_music(self):
         pygame.mixer.music.play(loops=1)
@@ -167,9 +207,11 @@ class Client(Messenger):
         pygame.mixer.music.stop()
 
     def prompt_continue_after_spin_result(self):
-        self.btn_spin.pack_forget()  # hide submit button
 
-        self.btn_continue.pack(side=BOTTOM, padx=50)  # put continue button there
+        self.load_wheel_spinning_frame()
+
+        # self.btn_spin.pack_forget()  # hide submit button
+
 
     def continue_after_spin_result(self):
         self.lbl_spin_res.set(self.strl.spin_result_label)  # clear old spin result
@@ -180,22 +222,33 @@ class Client(Messenger):
         self.btn_spin.pack(side=BOTTOM, padx=50)  # put spin button back
         self.load_prompt_frame()
 
-    def populate_spin_frame(self):
+    def load_prompt_frame(self):
+        self.note.select(3)
+
+    def populate_spin_prompt_frame(self):
         #### END TEXT INTERFACE ####
-        lbl_player_question = ttk.Label(self.wheel_frame_2, text=self.strl.player_turn_spin, padding="10", width="300")
+        self.filename = 'blank.png'
+        self.image = Image.open(self.filename)
+        self.tkimage = ImageTk.PhotoImage(self.image)
+        self.canvas = tkinter.Canvas(self.spin_prompt_frame_1, width=1000, height=1200)
+        self.canvas.create_image(500, 500, image=self.tkimage)
+        self.canvas.place(x=0, y=0)
+        lbl_player_question = ttk.Label(self.spin_prompt_frame_1, text=self.strl.player_turn_spin, padding="10", width="300")
         lbl_player_question.pack(side=TOP)
-        self.btn_spin = ttk.Button(self.wheel_frame_2, text=self.strl.wheel_btn_spin, command=self.send_spin_command)
+        self.btn_spin = ttk.Button(self.spin_prompt_frame_1, text=self.strl.wheel_btn_spin, command=self.send_spin_command)
         self.btn_spin.pack(side=BOTTOM, padx=50)  # put spin button on screen first
 
+
         # don's show this yet
-        self.btn_continue = ttk.Button(self.wheel_frame_2, text=self.strl.continue_button_label, command=self.continue_after_spin_result)
+        self.btn_continue = ttk.Button(self.spin_prompt_frame_1, text=self.strl.continue_button_label, command=self.continue_after_spin_result)
 
         self.lbl_spin_res = StringVar()
         self.lbl_spin_res.set(self.strl.spin_result_label)
-        self.spin_result = ttk.Label(self.wheel_frame_2, textvar=self.lbl_spin_res,
-                                      padding="10",
-                                      width="300")
-        self.spin_result.pack(side=TOP)
+        self.spin_result = ttk.Label(self.spin_prompt_frame_1, textvar=self.lbl_spin_res,
+                                     padding="10",
+                                     width="300")
+
+    # def populate_spinning_frame(self):
 
     def prompt_jeopardy_question(self, tile, jeopardy_category):
         self.__clear_frame(self.prompt_frame_3)
@@ -273,11 +326,13 @@ class Client(Messenger):
 
 
         # Create Select category Label
-        self.lbl_selected_category = Label(self.wheel_frame_2, text=" ")
+        self.lbl_selected_category = Label(self.spin_prompt_frame_1, text=" ")
         self.lbl_selected_category.pack()
 
     def send_spin_command(self):
-        self.send_command(self.server, Message(MessageType.SPIN, []))
+        cc = self.category_selected.get()
+        self.send_command(self.server, Message(MessageType.SPIN, cc))
+        #self.load_prompt_frame()
 
     def connect_to_game(self):
         """
@@ -324,10 +379,20 @@ class Client(Messenger):
                 self.__start_music()
                 [jeopardy_category, tile] = parsed_message.args
 
+                lbl_category = ttk.Label(self.prompt_frame_3, text=f"Category: {jeopardy_category}: {tile.points}", padding="10",
+                                         width="300")
+                lbl_category.pack(side=TOP)
+
                 self.prompt_jeopardy_question(tile, jeopardy_category)
+
 
             elif parsed_message.code == MessageType.PLAYERS_CHOICE:
                 [open_categories] = parsed_message.args  # TODO: Why is this client receiving its own player ID?
+
+                prompt_text = "Player's Choice: select a question category for your turn"
+                lbl_category = ttk.Label(self.prompt_frame_3, text=prompt_text, padding="10",
+                                         width="300")
+                lbl_category.pack(side=TOP)
 
                 self.prompt_category_choice(open_categories, MessageType.PLAYERS_CHOICE)
 
@@ -339,7 +404,8 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.SPIN:
                 _ = parsed_message.args
 
-                self.load_spin_frame()
+                self.load_spin_prompt_frame()
+
 
             elif parsed_message.code == MessageType.END_GAME:
                 [winner_player_id] = parsed_message.args
@@ -363,6 +429,8 @@ class Client(Messenger):
 
             elif parsed_message.code == MessageType.UPDATE_SCORES:
                 [scores_dict, tokens_dict, num_spins_remaining, curr_round] = parsed_message.args
+                if curr_round == 2:
+                    self.filename = 'ui/ROUND22.png'
 
                 # TODO (UI): Update the UI to display all players' scores and tokens, number of spins
                 self.__update_scores_tokens_spins(scores_dict, tokens_dict, num_spins_remaining, curr_round)
@@ -379,15 +447,79 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.SPIN_RESULT:
                 [spin_result] = parsed_message.args
 
+                # O(1) Super Algorithm
+                print(f"secret spin result: {spin_result}")
+
                 if type(spin_result) == str:
                     result_str = self.strl.spin_result_label + spin_result
                 else:
                     result_str = self.strl.spin_result_label + spin_result.value
 
                 self.lbl_spin_res.set(result_str)
-                self.spin_result.pack(side=TOP)  # show the spin result
+                print(f"secret spin result: {spin_result}")
+
+
+                if spin_result == "A IS FOR AUTUMN":
+                    demo = 12
+                elif spin_result == "LOSE TURN":
+                    demo = 36
+                elif spin_result == "UU COMPLETE ME":
+                    demo = 60
+                elif spin_result == "1 WORD, 2 MEANINGS":
+                    demo = 120
+                elif spin_result == "1970s TV":
+                    demo = 132
+                elif spin_result == "3 Ns":
+                    demo = 156
+                elif spin_result == "3 VOWELS IN A ROW":
+                    demo = 216
+                elif spin_result == "4-LETTER WORDS":
+                    demo = 240
+                elif spin_result == "4-SYLLABLE WORDS":
+                    demo = 262
+                elif spin_result == "SPIN AGAIN":
+                    demo = 276
+                elif spin_result == "FREE TOKEN":
+                    demp = 336
+                elif spin_result == '"ISM"s':
+                    demo = 360
+
+
+                ### Round Two Logic xD
+                elif spin_result == 'A BOROUGH BURIAL':
+                    demo = 12
+                elif spin_result == "LOSE TURN":
+                    demo = 36
+                elif spin_result == "ACM Awards":
+                    demo = 60
+                elif spin_result == "A SHRUBBERY!":
+                    demo = 120
+                elif spin_result == "AMERICAN HISTORY":
+                    demo = 132
+                elif spin_result == "AFTER MATH":
+                    demo = 156
+                elif spin_result == "ALL MY TROUBLES":
+                    demo = 216
+                elif spin_result == "ALTRUISTIC ATHLETES":
+                    demo = 240
+                elif spin_result == "ALL THINGS BELGIAN":
+                    demo = 262
+                elif spin_result == "SPIN AGAIN":
+                    demo = 276
+                elif spin_result == "FREE TOKEN":
+                    demo = 336
+                elif spin_result == 'BODIES OF WATER':
+                    demo = 360
+                else:
+                    demo = 0
+
+                self.demo = demo
+                print("demo " + str(demo))
 
                 self.prompt_continue_after_spin_result()
+
+                # response_info = []
+                # self.send_command(self.server, Message(parsed_message.code, response_info))
 
             else:
                 raise Exception(f"Client {self.player_id} received unknown MessageType: {parsed_message.code}")
@@ -395,7 +527,8 @@ class Client(Messenger):
             # self.send_command(self.server, Message(parsed_message.code, response_info))
 
     def __prompt_user_from_list(self, prompt_list: list):
-        """
+        """from PIL import Image, ImageTk
+
         Print out the contents of a list, and prompt the user to pick one.
         :param prompt_list: List of strings to pick from (e.g. a list of answers to a Jeopardy question)
         :return: (string) The answer that the user selected
@@ -479,6 +612,120 @@ class Client(Messenger):
         print(response_info)
         self.send_command(self.server, Message(MessageType.JEOPARDY_QUESTION, response_info))
 
+        # clear the screen of the question and answers
+        self.__clear_frame(self.prompt_frame_3)
+
+    def draw(self, iteration):
+
+        demo = iteration
+        print("demo: " + str(demo))
+
+        self.spinning_wheel_frame_2.after(3, self.process_next_frame)
+
+
+        image = Image.open(self.filename)
+        #tkimage = ImageTk.PhotoImage(image.rotate(angle))
+        #canvas_obj = self.canvas.create_image(500, 500, image=tkimage)
+        # Create a photoimage object of the image in the path
+        # Create an object of tkinter ImageTk
+
+
+        angle = 0
+        print(self.process_next_frame)
+
+        n = 0
+        #rr = random.choice(self.iterations)
+        rr =  demo
+        print( "Random iteration: " + str (rr))
+        spin_time = rr + 372
+        print(spin_time)
+
+        while n <= spin_time:
+            tkimage = ImageTk.PhotoImage(image.rotate(angle))
+            canvas_obj = self.canvas.create_image(500, 500, image=tkimage)
+
+            #Process next frame
+            self.spinning_wheel_frame_2.after_idle(self.process_next_frame)
+
+            # Delete previous state of image
+            yield
+            self.canvas.delete(canvas_obj)
+
+            # Angle controls the speed
+            angle += 12
+
+
+            angle %= 360
+            time.sleep(0.002)
+            print(n)
+
+            # Keeping up with frames.
+            n = n + 12
+
+            if n == spin_time:
+
+                if rr == 60:
+
+                    print("category 1")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 96:
+
+                    print("category 2")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 120:
+
+                    print("category 3")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 156:
+
+                    print("category  4")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 180:
+
+                    print("category 5")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 216:
+
+                    print("category 6")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 240:
+
+                    print("category 7")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+                elif rr == 276:
+
+                    print("category 8")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+                elif rr == 300:
+
+                    print("category 9")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+                elif rr == 336:
+
+                    print("category 10")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                elif rr == 360:
+                    print("category 11")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+                else:
+                    print("category 0")
+                    self.demo_category='1 WORD, 2 MEANINGS'
+
+        # self.canvas.delete(canvas_obj)
+        time.sleep(2)
+        self.load_spin_prompt_frame()
+        self.btn_continue.pack(side=BOTTOM, )
+        self.spin_result.pack(side=TOP)  # show the spin result
+        # self.load_prompt_frame()
+        # self.send_spin_command()
 
 
 gameplayer = Client(SRV_IP, SRV_PORT)
