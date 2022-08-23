@@ -8,6 +8,7 @@ from tkinter import ttk
 from server import Message, QueryStatus, MessageType, Messenger
 from ui import s
 import pygame.mixer
+from wheel.wheel import Sector
 from tkinter.messagebox import showinfo
 
 import random
@@ -462,7 +463,7 @@ class Client(Messenger):
 
                 if spin_result == "A IS FOR AUTUMN":
                     demo = 12
-                elif spin_result == "LOSE TURN" or spin_result == "BANKRUPT":
+                elif spin_result == Sector.LOSE_TURN or spin_result == Sector.BANKRUPT:
                     demo = 36
                 elif spin_result == "UU COMPLETE ME":
                     demo = 60
@@ -478,10 +479,10 @@ class Client(Messenger):
                     demo = 240
                 elif spin_result == "4-SYLLABLE WORDS":
                     demo = 262
-                elif spin_result == "SPIN AGAIN":
+                elif spin_result == Sector.SPIN_AGAIN:
                     demo = 276
-                elif spin_result == "FREE TOKEN":
-                    demp = 336
+                elif spin_result == Sector.FREE_TURN:
+                    demo = 336
                 elif spin_result == '"ISM"s':
                     demo = 360
 
@@ -489,8 +490,8 @@ class Client(Messenger):
                 ### Round Two Logic xD
                 elif spin_result == 'A BOROUGH BURIAL':
                     demo = 12
-                elif spin_result == "LOSE TURN":
-                    demo = 36
+                # elif spin_result == "LOSE TURN":
+                #     demo = 36
                 elif spin_result == "ACM Awards":
                     demo = 60
                 elif spin_result == "A SHRUBBERY!":
@@ -505,10 +506,10 @@ class Client(Messenger):
                     demo = 240
                 elif spin_result == "ALL THINGS BELGIAN":
                     demo = 262
-                elif spin_result == "SPIN AGAIN":
-                    demo = 276
-                elif spin_result == "FREE TOKEN":
-                    demo = 336
+                # elif spin_result == "SPIN AGAIN":
+                #     demo = 276
+                # elif spin_result == "FREE TOKEN":
+                #     demo = 336
                 elif spin_result == 'BODIES OF WATER':
                     demo = 360
                 else:
