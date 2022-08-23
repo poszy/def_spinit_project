@@ -454,37 +454,38 @@ class Client(Messenger):
                 if type(spin_result) == str:
                     result_str = self.strl.spin_result_label + spin_result
                 else:
-                    spin_result = spin_result.value
+                    spin_result = spin_result.name
                     result_str = self.strl.spin_result_label + spin_result
 
                 self.lbl_spin_res.set(result_str)
                 print(f"secret spin result: {spin_result}")
 
-
                 if spin_result == "A IS FOR AUTUMN":
                     demo = 12
-                elif spin_result == Sector.LOSE_TURN or spin_result == Sector.BANKRUPT:
-                    demo = 36
+                elif spin_result == Sector.LOSE_TURN.name or spin_result == Sector.BANKRUPT.name:
+                    demo = 42
                 elif spin_result == "UU COMPLETE ME":
-                    demo = 60
+                    demo = 72
                 elif spin_result == "1 WORD, 2 MEANINGS":
-                    demo = 120
+                    demo = 102
                 elif spin_result == "1970s TV":
                     demo = 132
                 elif spin_result == "3 Ns":
-                    demo = 156
+                    demo = 162
                 elif spin_result == "3 VOWELS IN A ROW":
-                    demo = 216
+                    demo = 189
                 elif spin_result == "4-LETTER WORDS":
-                    demo = 240
+                    demo = 222
                 elif spin_result == "4-SYLLABLE WORDS":
-                    demo = 262
-                elif spin_result == Sector.SPIN_AGAIN:
+                    demo = 252
+                elif spin_result == Sector.SPIN_AGAIN.name:
                     demo = 276
-                elif spin_result == Sector.FREE_TURN:
-                    demo = 336
+                elif spin_result == Sector.FREE_TURN.name:
+                    demo = 312
                 elif spin_result == '"ISM"s':
-                    demo = 360
+                    demo = 336
+                elif spin_result == Sector.OPPONENTS_CHOICE.name or spin_result == Sector.PLAYERS_CHOICE.name:
+                    demo = 358
 
 
                 ### Round Two Logic xD
