@@ -35,6 +35,7 @@ class Client(Messenger):
         self.srv_port = srv_port
         self.player_id = None
         self.game_over = False
+        self.current_rounds = 1
 
         self.ui = UserInterface()  # TODO (UI): Unused. Fill in with any required arguments.
 
@@ -70,7 +71,7 @@ class Client(Messenger):
         self.label_spins_val = StringVar()
         lbl_spins = ttk.Label(self.frame_top, textvariable=self.label_spins_val, padding="10", width="30")
         lbl_spins.pack(side=LEFT)
-        self.label_spins_val.set(self.strl.main_lbl_spins_remain+"50")
+        self.label_spins_val.set(self.strl.main_lbl_spins_remain+"5")
 
         self.label_score_val = StringVar()
         lbl_score = ttk.Label(self.frame_top, textvariable=self.label_score_val, padding="10", width="20")
@@ -183,8 +184,12 @@ class Client(Messenger):
 
     def load_wheel_spinning_frame(self):
         self.note.select(2)
+        print( "curren round "+ str(self.current_rounds))
 
-        self.filename = 'ui/ROUND1.png'
+        if self.current_rounds == 2:
+            self.filename = 'ui/ROUND22.png'
+        else:
+            self.filename = 'ui/ROUND1.png'
 
         self.canvas = tkinter.Canvas(self.spinning_wheel_frame_2, width=1000, height=1200)
         self.canvas.place(x=0,y=0)
@@ -431,7 +436,8 @@ class Client(Messenger):
             elif parsed_message.code == MessageType.UPDATE_SCORES:
                 [scores_dict, tokens_dict, num_spins_remaining, curr_round] = parsed_message.args
                 if curr_round == 2:
-                    self.filename = 'ui/ROUND22.png'
+                    #self.filename = 'ui/ROUND22.png
+                    self.current_rounds = 2
 
                 # TODO (UI): Update the UI to display all players' scores and tokens, number of spins
                 self.__update_scores_tokens_spins(scores_dict, tokens_dict, num_spins_remaining, curr_round)
@@ -467,7 +473,7 @@ class Client(Messenger):
                 elif spin_result == "UU COMPLETE ME":
                     demo = 72
                 elif spin_result == "1 WORD, 2 MEANINGS":
-                    demo = 102
+                    demo = 114
                 elif spin_result == "1970s TV":
                     demo = 132
                 elif spin_result == "3 Ns":
@@ -483,7 +489,7 @@ class Client(Messenger):
                 elif spin_result == Sector.FREE_TURN.name:
                     demo = 312
                 elif spin_result == '"ISM"s':
-                    demo = 336
+                    demo = 348
                 elif spin_result == Sector.OPPONENTS_CHOICE.name or spin_result == Sector.PLAYERS_CHOICE.name:
                     demo = 358
 

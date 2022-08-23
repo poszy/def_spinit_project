@@ -11,7 +11,7 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
 
-MAX_SPINS = 50
+MAX_SPINS = 5
 NUM_ROUNDS = 2
 MAX_NUM_PLAYERS = 3
 DEFAULT_QUESTIONS_FILE = './JArchive-questions.csv'  # need to use relative path from current working directory of main.py!
