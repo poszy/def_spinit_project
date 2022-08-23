@@ -724,6 +724,7 @@ class Client(Messenger):
         self.load_spin_prompt_frame()
         self.btn_continue.pack(side=BOTTOM, )
         self.spin_result.pack(side=TOP)  # show the spin result
+        self.btn_spin.pack_forget()
         # self.load_prompt_frame()
         # self.send_spin_command()
 
