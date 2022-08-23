@@ -453,6 +453,7 @@ class Client(Messenger):
                 if type(spin_result) == str:
                     result_str = self.strl.spin_result_label + spin_result
                 else:
+                    spin_result = spin_result.value
                     result_str = self.strl.spin_result_label + spin_result.value
 
                 self.lbl_spin_res.set(result_str)
@@ -461,7 +462,7 @@ class Client(Messenger):
 
                 if spin_result == "A IS FOR AUTUMN":
                     demo = 12
-                elif spin_result == "LOSE TURN":
+                elif spin_result == "LOSE TURN" or spin_result == "BANKRUPT":
                     demo = 36
                 elif spin_result == "UU COMPLETE ME":
                     demo = 60
